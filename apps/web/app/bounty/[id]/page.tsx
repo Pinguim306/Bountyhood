@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BountyWorkspace } from "@/components/BountyWorkspace";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BountyStatus } from "@/lib/contract";
 import { formatReward, shortAddress, timeLeft } from "@/lib/format";
@@ -64,20 +65,8 @@ export default async function BountyPage({
             </section>
           )}
 
-          <section className="mt-8">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-              Submissions ({bounty.submissionCount})
-            </h2>
-            <div className="mt-3 rounded-2xl border border-dashed border-ink-700 p-6 text-sm text-zinc-500">
-              {isOpen ? (
-                <>
-                  Submission flow lands in the next phase. Hunters will attach
-                  proof here and the creator approves a winner to release escrow.
-                </>
-              ) : (
-                <>This bounty is no longer accepting submissions.</>
-              )}
-            </div>
+          <section id="work" className="mt-8 scroll-mt-24">
+            <BountyWorkspace bounty={bounty} />
           </section>
         </div>
 
@@ -106,12 +95,16 @@ export default async function BountyPage({
               )}
             </dl>
 
-            <button
-              disabled={!isOpen}
-              className="mt-6 w-full rounded-xl bg-lime px-4 py-3 font-semibold text-ink-950 transition hover:bg-lime-bright disabled:cursor-not-allowed disabled:opacity-50"
+            <a
+              href="#work"
+              className={`mt-6 block w-full rounded-xl px-4 py-3 text-center font-semibold transition ${
+                isOpen
+                  ? "bg-lime text-ink-950 hover:bg-lime-bright"
+                  : "cursor-not-allowed bg-ink-800 text-zinc-500"
+              }`}
             >
               {isOpen ? "Submit work" : "Closed"}
-            </button>
+            </a>
             <p className="mt-3 text-center text-xs text-zinc-600">
               Connect a wallet to submit. Payout releases from escrow on approval.
             </p>

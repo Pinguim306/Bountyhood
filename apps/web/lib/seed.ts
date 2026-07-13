@@ -1,5 +1,5 @@
 import { BountyStatus } from "./contract";
-import type { Bounty } from "./types";
+import type { Bounty, Submission } from "./types";
 
 const now = Math.floor(Date.now() / 1000);
 const days = (n: number) => n * 24 * 60 * 60;
@@ -96,5 +96,45 @@ export const SEED_BOUNTIES: Bounty[] = [
     deadline: now - days(3),
     status: BountyStatus.Reclaimed,
     submissionCount: 4,
+  },
+];
+
+/** Sample submissions so the submission list renders in preview mode. */
+export const SEED_SUBMISSIONS: Submission[] = [
+  {
+    id: "seed-sub-1",
+    bountyId: "1",
+    hunter: "0x4838B106FCe9647Bdf1E7877BF73cE8B0BAD5f97",
+    summary:
+      "Shipped an embeddable React widget with live blocks + gas. Themeable via CSS variables, refreshes on every new block over your RPC.",
+    links: "https://github.com/example/rh-explorer-widget\nhttps://widget.example.dev",
+    proofHash:
+      "0x0000000000000000000000000000000000000000000000000000000000000001",
+    createdAt: Date.now() - 12 * 60 * 60 * 1000,
+    approved: false,
+  },
+  {
+    id: "seed-sub-2",
+    bountyId: "1",
+    hunter: "0x28C6c06298d514Db089934071355E5743bf21d60",
+    summary:
+      "Alternative implementation using web components so it drops into any framework. Includes a Storybook and dark/light themes.",
+    links: "https://github.com/example/rh-blocks-wc",
+    proofHash:
+      "0x0000000000000000000000000000000000000000000000000000000000000002",
+    createdAt: Date.now() - 3 * 60 * 60 * 1000,
+    approved: false,
+  },
+  {
+    id: "seed-sub-3",
+    bountyId: "4",
+    hunter: "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B",
+    summary:
+      "Reviewed BountyEscrow.sol — no fund-safety issues found, but suggested tightening the dispute-window boundary check. Full write-up attached.",
+    links: "https://gist.github.com/example/escrow-review",
+    proofHash:
+      "0x0000000000000000000000000000000000000000000000000000000000000003",
+    createdAt: Date.now() - 20 * 60 * 60 * 1000,
+    approved: false,
   },
 ];

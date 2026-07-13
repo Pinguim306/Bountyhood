@@ -41,7 +41,8 @@ Runs in **preview mode** with sample data until a contract is deployed. Copy
 - [x] **Phase 0** — monorepo, tooling, CI
 - [x] **Phase 1** — `BountyEscrow` contract + full test suite (34 tests)
 - [x] **Phase 2** — frontend core (bounty grid, creation, detail; wallet connect)
-- [ ] **Phase 3** — submissions & payout UI
+- [x] **Phase 3** — submissions, approval & payout flow (submit proof, approve,
+      cancel, reclaim)
 - [ ] **Phase 4** — discovery, profiles, leaderboard
 - [ ] **Phase 5** — moderation & disputes
 - [ ] **Phase 6** — mainnet
@@ -67,3 +68,25 @@ pnpm contracts:test
 
 Robinhood Chain is an Arbitrum Orbit L2, 100% EVM-compatible, so the standard
 Solidity/Hardhat/viem/wagmi toolchain works without modification.
+
+## Going live (preview → on-chain)
+
+The app runs in **preview mode** (JSON-backed sample data) until the escrow
+contract is deployed. To switch to real on-chain bounties:
+
+1. Fund a deployer wallet with testnet ETH from the
+   [faucet](https://faucet.testnet.chain.robinhood.com), set
+   `DEPLOYER_PRIVATE_KEY`, and deploy:
+   ```bash
+   pnpm --filter @bountyhood/contracts deploy:testnet
+   ```
+2. Put the deployed address in `apps/web/.env.local`:
+   ```
+   NEXT_PUBLIC_CHAIN_ID=46630
+   NEXT_PUBLIC_BOUNTY_ESCROW_ADDRESS=0x…
+   ```
+
+The frontend's action layer (`lib/useBountyActions.ts`) already routes
+`submit` / `approve` / `cancel` / `reclaim` to the contract when an address is
+configured — no other code changes needed. Deployment must run from a network
+that can reach the Robinhood RPC (some CI/sandbox egress policies block it).

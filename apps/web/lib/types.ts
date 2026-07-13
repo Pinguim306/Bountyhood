@@ -21,6 +21,18 @@ export interface Bounty extends BountyMetadata {
   txHash?: string;
 }
 
+/** A hunter's submission = off-chain proof anchored on-chain by hash. */
+export interface Submission {
+  id: string;
+  bountyId: string;
+  hunter: string; // wallet address
+  summary: string;
+  links: string; // newline-separated URLs
+  proofHash: string; // keccak256 of the proof, matches on-chain anchor
+  createdAt: number;
+  approved: boolean;
+}
+
 export const CATEGORIES = [
   "Development",
   "Design",
