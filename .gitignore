@@ -33,3 +33,6 @@ pnpm-debug.log*
 .idea/
 .vscode/
 *.swp
+
+# Next.js local data store (MVP metadata)
+apps/web/.data/

@@ -21,15 +21,26 @@ but focused solely on bounties — no trading, no launchpad.
 
 ```
 packages/contracts   BountyEscrow smart contracts (Solidity + Hardhat)
-apps/web             Web frontend (Next.js) — coming next
+apps/web             Web frontend (Next.js + wagmi/viem)
 docs/                Planning docs
 ```
+
+## Quickstart (web)
+
+```bash
+pnpm install
+pnpm --filter @bountyhood/web dev   # http://localhost:3000
+```
+
+Runs in **preview mode** with sample data until a contract is deployed. Copy
+`apps/web/.env.example` to `.env.local` and set
+`NEXT_PUBLIC_BOUNTY_ESCROW_ADDRESS` to read live on-chain bounties.
 
 ## Status
 
 - [x] **Phase 0** — monorepo, tooling, CI
 - [x] **Phase 1** — `BountyEscrow` contract + full test suite (34 tests)
-- [ ] **Phase 2** — frontend core (bounty grid + creation)
+- [x] **Phase 2** — frontend core (bounty grid, creation, detail; wallet connect)
 - [ ] **Phase 3** — submissions & payout UI
 - [ ] **Phase 4** — discovery, profiles, leaderboard
 - [ ] **Phase 5** — moderation & disputes

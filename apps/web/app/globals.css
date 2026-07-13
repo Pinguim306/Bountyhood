@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+}
+
+html,
+body {
+  background-color: #08090b;
+  color: #e7e9ee;
+}
+
+/* Subtle grid backdrop reminiscent of the pump.fun GO hero */
+body {
+  background-image: radial-gradient(
+      circle at 50% -10%,
+      rgba(184, 255, 47, 0.08),
+      transparent 45%
+    ),
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(184, 255, 47, 0.3);
+}
+
+/* Thin scrollbar to match the dark UI */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #333747 transparent;
+}
