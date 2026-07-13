@@ -1,0 +1,11 @@
+{
+  "name": "bountyhood",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bounty platform on Robinhood Chain — create bounties with escrowed rewards, hunt them, get paid on-chain.",
+  "scripts": {
+    "contracts:build": "pnpm --filter @bountyhood/contracts build",
+    "contracts:test": "pnpm --filter @bountyhood/contracts test"
+  },
+  "packageManager": "pnpm@10.33.0"
+}

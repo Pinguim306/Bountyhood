@@ -1,0 +1,21 @@
+{
+  "name": "@bountyhood/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BountyEscrow smart contracts for Bountyhood on Robinhood Chain.",
+  "scripts": {
+    "seed-solc": "node scripts/seed-solc.js",
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:testnet": "hardhat run scripts/deploy.js --network robinhoodTestnet",
+    "deploy:mainnet": "hardhat run scripts/deploy.js --network robinhoodMainnet"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.0",
+    "solc": "0.8.24"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.2"
+  }
+}
