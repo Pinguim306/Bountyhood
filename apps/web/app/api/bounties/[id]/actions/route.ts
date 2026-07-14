@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
+import { isAdminAddress } from "@/lib/admin";
 import {
   approveSubmission,
   cancelBounty,
+  openDispute,
   reclaimBounty,
+  resolveDispute,
 } from "@/lib/store";
 
 /**
- * Creator lifecycle actions in preview mode: approve a submission, cancel, or
- * reclaim. In live mode these are contract calls; this endpoint mirrors the
- * resulting state so the UI stays consistent.
+ * Lifecycle actions in preview mode: approve a submission, cancel, reclaim,
+ * open a dispute (hunter), or resolve one (arbiter). In live mode these are
+ * contract calls; this endpoint mirrors the resulting state so the UI stays
+ * consistent.
  */
 export async function POST(
   req: Request,
@@ -35,6 +39,17 @@ export async function POST(
       bounty = await cancelBounty({ bountyId: params.id, caller });
     } else if (action === "reclaim") {
       bounty = await reclaimBounty({ bountyId: params.id, caller });
+    } else if (action === "dispute") {
+      bounty = await openDispute({ bountyId: params.id, caller });
+    } else if (action === "resolve") {
+      // Arbiter-only. Preview mode trusts the caller address like every other
+      // action here; on-chain, the contract enforces the arbiter itself.
+      if (!isAdminAddress(caller))
+        throw new Error("Only the platform arbiter can resolve disputes");
+      bounty = await resolveDispute({
+        bountyId: params.id,
+        winnerSubmissionId: submissionId || null,
+      });
     } else {
       return NextResponse.json({ error: "Unknown action" }, { status: 400 });
     }

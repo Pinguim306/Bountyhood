@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
+import { DISPUTE_WINDOW_SECS } from "@/lib/admin";
 import { BountyStatus } from "@/lib/contract";
 import { shortAddress } from "@/lib/format";
 import { useBountyActions } from "@/lib/useBountyActions";
@@ -21,7 +22,12 @@ export function BountyWorkspace({ bounty }: { bounty: Bounty }) {
   const isCreator =
     isConnected && address?.toLowerCase() === bounty.creator.toLowerCase();
   const isOpen = bounty.status === BountyStatus.Open;
-  const expired = Math.floor(Date.now() / 1000) > bounty.deadline;
+  const isDisputed = bounty.status === BountyStatus.Disputed;
+  const nowSec = Math.floor(Date.now() / 1000);
+  const expired = nowSec > bounty.deadline;
+  const windowEnd = bounty.deadline + DISPUTE_WINDOW_SECS;
+  const inDisputeWindow = expired && nowSec <= windowEnd;
+  const windowElapsed = nowSec > windowEnd;
   const alreadySubmitted =
     !!address &&
     submissions.some((s) => s.hunter.toLowerCase() === address.toLowerCase());
@@ -77,15 +83,54 @@ export function BountyWorkspace({ bounty }: { bounty: Bounty }) {
         />
       )}
 
+      {/* Dispute banner */}
+      {isDisputed && (
+        <div className="rounded-2xl border border-amber-400/40 bg-amber-400/[0.06] p-5">
+          <div className="text-sm font-semibold text-amber-300">
+            Under dispute
+          </div>
+          <p className="mt-1 text-sm text-zinc-400">
+            {bounty.disputedBy
+              ? `${shortAddress(bounty.disputedBy)} contested this bounty after the deadline. `
+              : "A hunter contested this bounty after the deadline. "}
+            The escrow is frozen until the platform arbiter pays a hunter or
+            refunds the creator.
+          </p>
+        </div>
+      )}
+
+      {/* Hunter dispute action */}
+      {isOpen && inDisputeWindow && !isCreator && alreadySubmitted && (
+        <div className="rounded-2xl border border-amber-400/30 bg-amber-400/[0.04] p-5">
+          <div className="text-sm font-semibold text-amber-300">
+            Deadline passed without a payout
+          </div>
+          <p className="mt-1 text-sm text-zinc-400">
+            You submitted work to this bounty. If you believe you delivered, open
+            a dispute before {new Date(windowEnd * 1000).toLocaleString()} —
+            otherwise the creator can reclaim the escrow.
+          </p>
+          <button
+            disabled={!!busy}
+            onClick={guard("dispute", async () => {
+              await actions.dispute(bounty.id, address!);
+            })}
+            className="mt-4 rounded-lg border border-amber-400/50 bg-amber-400/10 px-4 py-2 text-sm font-semibold text-amber-300 hover:bg-amber-400/20 disabled:opacity-50"
+          >
+            {busy === "dispute" ? "Opening dispute…" : "Open dispute"}
+          </button>
+        </div>
+      )}
+
       {/* Creator controls */}
       {isCreator && isOpen && (
         <div className="rounded-2xl border border-lime/30 bg-lime/[0.06] p-5">
           <div className="text-sm font-semibold text-lime">You own this bounty</div>
           <p className="mt-1 text-sm text-zinc-400">
             Approve a submission to release the escrow, cancel while there are no
-            submissions, or reclaim after the deadline.
+            submissions, or reclaim after the deadline and dispute window.
           </p>
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             {bounty.submissionCount === 0 && !expired && (
               <button
                 disabled={!!busy}
@@ -97,7 +142,7 @@ export function BountyWorkspace({ bounty }: { bounty: Bounty }) {
                 {busy === "cancel" ? "Cancelling…" : "Cancel & refund"}
               </button>
             )}
-            {expired && (
+            {windowElapsed && (
               <button
                 disabled={!!busy}
                 onClick={guard("reclaim", async () => {
@@ -107,6 +152,13 @@ export function BountyWorkspace({ bounty }: { bounty: Bounty }) {
               >
                 {busy === "reclaim" ? "Reclaiming…" : "Reclaim escrow"}
               </button>
+            )}
+            {inDisputeWindow && (
+              <span className="text-xs text-zinc-500">
+                Hunters can dispute until{" "}
+                {new Date(windowEnd * 1000).toLocaleString()} — reclaim unlocks
+                after that.
+              </span>
             )}
           </div>
         </div>

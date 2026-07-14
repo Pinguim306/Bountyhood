@@ -2,10 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddressLink } from "@/components/AddressLink";
 import { BountyWorkspace } from "@/components/BountyWorkspace";
+import { ReportButton } from "@/components/ReportButton";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BountyStatus } from "@/lib/contract";
 import { formatReward, timeLeft } from "@/lib/format";
-import { getBounty } from "@/lib/store";
+import { getBounty, getModerationFor } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ export default async function BountyPage({
 }) {
   const bounty = await getBounty(params.id);
   if (!bounty) notFound();
+  const moderation = await getModerationFor(bounty.id);
 
   const { label: countdown } = timeLeft(bounty.deadline);
   const deadlineDate = new Date(bounty.deadline * 1000);
@@ -29,6 +31,20 @@ export default async function BountyPage({
       >
         ← All bounties
       </Link>
+
+      {moderation && (
+        <div className="mt-4 rounded-2xl border border-red-500/40 bg-red-500/[0.06] p-4 text-sm">
+          <span className="font-semibold text-red-300">
+            Hidden by moderation
+          </span>
+          <span className="text-zinc-400">
+            {" "}
+            — {moderation.reason}. This bounty no longer appears in listings,
+            but the escrow still follows the contract&apos;s rules, so the
+            creator and hunters can settle funds below.
+          </span>
+        </div>
+      )}
 
       <div className="mt-4 grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Main */}
@@ -69,6 +85,10 @@ export default async function BountyPage({
           <section id="work" className="mt-8 scroll-mt-24">
             <BountyWorkspace bounty={bounty} />
           </section>
+
+          <div className="mt-10">
+            <ReportButton bountyId={bounty.id} />
+          </div>
         </div>
 
         {/* Reward panel */}

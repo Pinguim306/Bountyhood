@@ -1,5 +1,5 @@
 import { BountyStatus } from "./contract";
-import type { Bounty, Submission } from "./types";
+import type { Bounty, Report, Submission } from "./types";
 
 const now = Math.floor(Date.now() / 1000);
 const days = (n: number) => n * 24 * 60 * 60;
@@ -97,6 +97,21 @@ export const SEED_BOUNTIES: Bounty[] = [
     status: BountyStatus.Reclaimed,
     submissionCount: 4,
   },
+  {
+    id: "7",
+    title: "Translate the Bountyhood docs to Spanish",
+    description:
+      "Full translation of the README and user guide. Native-level fluency required; keep code blocks and terminology intact.",
+    deliverables: "Markdown files in a PR against our docs repo.",
+    category: "Content",
+    creator: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+    createdAt: Date.now() - days(9) * 1000,
+    rewardWei: eth(0.12),
+    deadline: now - days(1),
+    status: BountyStatus.Disputed,
+    submissionCount: 1,
+    disputedBy: "0x4838B106FCe9647Bdf1E7877BF73cE8B0BAD5f97",
+  },
 ];
 
 /** Sample submissions so the submission list renders in preview mode. */
@@ -136,5 +151,31 @@ export const SEED_SUBMISSIONS: Submission[] = [
       "0x0000000000000000000000000000000000000000000000000000000000000003",
     createdAt: Date.now() - 20 * 60 * 60 * 1000,
     approved: false,
+  },
+  {
+    id: "seed-sub-4",
+    bountyId: "7",
+    hunter: "0x4838B106FCe9647Bdf1E7877BF73cE8B0BAD5f97",
+    summary:
+      "Complete Spanish translation delivered before the deadline — README plus the full user guide, terminology glossary included. Creator went quiet, so I opened a dispute.",
+    links: "https://github.com/example/bountyhood-docs-es/pull/1",
+    proofHash:
+      "0x0000000000000000000000000000000000000000000000000000000000000004",
+    createdAt: Date.now() - days(2) * 1000,
+    approved: false,
+  },
+];
+
+/** Sample open report so the moderation queue renders in preview mode. */
+export const SEED_REPORTS: Report[] = [
+  {
+    id: "seed-report-1",
+    bountyId: "6",
+    reporter: "0x4838B106FCe9647Bdf1E7877BF73cE8B0BAD5f97",
+    reason: "Spam or misleading",
+    details:
+      "Impressions in the acceptance criteria can't be verified — looks like engagement farming.",
+    createdAt: Date.now() - days(1) * 1000,
+    status: "open",
   },
 ];

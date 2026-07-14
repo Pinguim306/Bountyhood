@@ -9,6 +9,7 @@ const VERB: Record<ActivityKind, { text: string; tone: string }> = {
   approved: { text: "won", tone: "text-lime-bright" },
   reclaimed: { text: "reclaimed", tone: "text-zinc-400" },
   cancelled: { text: "cancelled", tone: "text-zinc-400" },
+  disputed: { text: "disputed", tone: "text-amber-300" },
 };
 
 export function ActivityFeed({
