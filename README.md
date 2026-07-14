@@ -43,7 +43,8 @@ Runs in **preview mode** with sample data until a contract is deployed. Copy
 - [x] **Phase 2** — frontend core (bounty grid, creation, detail; wallet connect)
 - [x] **Phase 3** — submissions, approval & payout flow (submit proof, approve,
       cancel, reclaim)
-- [ ] **Phase 4** — discovery, profiles, leaderboard
+- [x] **Phase 4** — discovery & reputation (public profiles, hunter/creator
+      leaderboards, activity feed)
 - [ ] **Phase 5** — moderation & disputes
 - [ ] **Phase 6** — mainnet
 

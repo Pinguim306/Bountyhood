@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AddressLink } from "@/components/AddressLink";
 import { BountyWorkspace } from "@/components/BountyWorkspace";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BountyStatus } from "@/lib/contract";
-import { formatReward, shortAddress, timeLeft } from "@/lib/format";
+import { formatReward, timeLeft } from "@/lib/format";
 import { getBounty } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -41,8 +42,8 @@ export default async function BountyPage({
           <h1 className="mt-3 text-3xl font-black tracking-tight text-white">
             {bounty.title}
           </h1>
-          <div className="mt-2 text-sm text-zinc-500">
-            Posted by {shortAddress(bounty.creator)}
+          <div className="mt-2 flex items-center gap-1.5 text-sm text-zinc-500">
+            Posted by <AddressLink address={bounty.creator} />
           </div>
 
           <section className="mt-8">
@@ -91,7 +92,10 @@ export default async function BountyPage({
               />
               <Row label="Submissions" value={String(bounty.submissionCount)} />
               {bounty.winner && (
-                <Row label="Winner" value={shortAddress(bounty.winner)} />
+                <Row
+                  label="Winner"
+                  value={<AddressLink address={bounty.winner} withIcon={false} />}
+                />
               )}
             </dl>
 

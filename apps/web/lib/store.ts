@@ -83,14 +83,17 @@ async function saveBountyState(next: Bounty): Promise<void> {
 
 /* ------------------------------ submissions ------------------------------ */
 
-export async function getSubmissions(bountyId: string): Promise<Submission[]> {
+/** Every submission across all bounties (seed + stored), newest first. */
+export async function getAllSubmissions(): Promise<Submission[]> {
   const stored = await readJson<Submission>(SUBMISSIONS_FILE);
-  const all = [...SEED_SUBMISSIONS, ...stored].filter(
-    (s) => s.bountyId === bountyId
-  );
-  // De-dup by id (stored overrides seed) and sort newest first.
-  const byId = new Map(all.map((s) => [s.id, s]));
+  const byId = new Map<string, Submission>();
+  for (const s of SEED_SUBMISSIONS) byId.set(s.id, s);
+  for (const s of stored) byId.set(s.id, s); // stored overrides seed
   return [...byId.values()].sort((a, b) => b.createdAt - a.createdAt);
+}
+
+export async function getSubmissions(bountyId: string): Promise<Submission[]> {
+  return (await getAllSubmissions()).filter((s) => s.bountyId === bountyId);
 }
 
 export async function addSubmission(input: {
