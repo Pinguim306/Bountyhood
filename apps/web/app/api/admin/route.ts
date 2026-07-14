@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAdminAddress } from "@/lib/admin";
+import { getSessionAddress } from "@/lib/auth";
 import { BountyStatus } from "@/lib/contract";
 import {
   getBounties,
@@ -12,17 +13,20 @@ import {
 } from "@/lib/store";
 
 /**
- * Moderation backend (Phase 5). Preview mode trusts the caller address the same
- * way the rest of the preview API does — real deployments should authenticate
- * moderators with wallet signatures (SIWE) instead.
+ * Moderation backend (Phase 5). Moderator identity comes from the SIWE session
+ * cookie — being a moderator requires proving control of an allowlisted wallet
+ * by signature, not merely naming its address.
  */
 
 const unauthorized = () =>
-  NextResponse.json({ error: "Not a moderator wallet" }, { status: 403 });
+  NextResponse.json(
+    { error: "Sign in with a moderator wallet" },
+    { status: 403 }
+  );
 
 /** Dashboard data: report queue, dispute queue, and the hidden list. */
-export async function GET(req: Request) {
-  const caller = new URL(req.url).searchParams.get("caller");
+export async function GET() {
+  const caller = await getSessionAddress();
   if (!isAdminAddress(caller)) return unauthorized();
 
   const [bounties, reports, moderation] = await Promise.all([
@@ -57,14 +61,13 @@ export async function GET(req: Request) {
 
 /** Moderation actions: dismiss a report, hide a bounty, or unhide one. */
 export async function POST(req: Request) {
+  const caller = await getSessionAddress();
+  if (!caller || !isAdminAddress(caller)) return unauthorized();
+
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
 
-  const { caller, action, reportId, bountyId, reason } = body as Record<
-    string,
-    string
-  >;
-  if (!isAdminAddress(caller)) return unauthorized();
+  const { action, reportId, bountyId, reason } = body as Record<string, string>;
 
   try {
     if (action === "dismiss") {

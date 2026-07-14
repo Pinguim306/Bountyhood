@@ -77,6 +77,28 @@ export async function createBounty(input: {
   return bounty;
 }
 
+/** Mirror a chain-verified bounty (id = on-chain id, values from the chain). */
+export async function registerOnChainBounty(input: {
+  id: string;
+  metadata: Omit<BountyMetadata, "id" | "createdAt">;
+  rewardWei: string;
+  deadline: number;
+  txHash?: string;
+}): Promise<Bounty> {
+  const bounty: Bounty = {
+    id: input.id,
+    ...input.metadata,
+    createdAt: Date.now(),
+    rewardWei: input.rewardWei,
+    deadline: input.deadline,
+    status: BountyStatus.Open,
+    submissionCount: 0,
+    txHash: input.txHash,
+  };
+  await repo.upsertBounty(bounty);
+  return bounty;
+}
+
 /* ------------------------------ submissions ------------------------------ */
 
 /** Every submission across all bounties (seed + stored), newest first. */
