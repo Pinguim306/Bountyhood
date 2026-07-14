@@ -8,6 +8,7 @@ import { BountyStatus } from "@/lib/contract";
 import { shortAddress } from "@/lib/format";
 import { useBountyActions } from "@/lib/useBountyActions";
 import type { Bounty, Submission } from "@/lib/types";
+import { AddressLink } from "./AddressLink";
 
 export function BountyWorkspace({ bounty }: { bounty: Bounty }) {
   const router = useRouter();
@@ -188,9 +189,11 @@ export function BountyWorkspace({ bounty }: { bounty: Bounty }) {
                 }`}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <span className="font-mono text-sm text-zinc-300">
-                    {shortAddress(s.hunter)}
-                  </span>
+                  <AddressLink
+                    address={s.hunter}
+                    iconSize={22}
+                    className="text-sm text-zinc-300"
+                  />
                   {s.approved ? (
                     <span className="rounded-full border border-lime/50 bg-lime/10 px-2.5 py-0.5 text-xs font-semibold text-lime">
                       Winner · paid

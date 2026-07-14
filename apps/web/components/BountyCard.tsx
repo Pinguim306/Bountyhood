@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { BountyStatus } from "@/lib/contract";
-import { formatReward, shortAddress, timeLeft } from "@/lib/format";
+import { formatReward, timeLeft } from "@/lib/format";
 import type { Bounty } from "@/lib/types";
-import { Identicon } from "./Identicon";
+import { AddressChip } from "./AddressChip";
 import { StatusBadge } from "./StatusBadge";
 
 export function BountyCard({ bounty }: { bounty: Bounty }) {
@@ -47,8 +47,8 @@ export function BountyCard({ bounty }: { bounty: Bounty }) {
       </div>
 
       <div className="mt-4 flex items-center gap-2 border-t border-ink-800 pt-3 text-xs text-zinc-500">
-        <Identicon address={bounty.creator} size={18} />
-        <span>by {shortAddress(bounty.creator)}</span>
+        <span>by</span>
+        <AddressChip address={bounty.creator} iconSize={18} />
       </div>
     </Link>
   );
