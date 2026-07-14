@@ -25,12 +25,12 @@ export const robinhoodMainnet = defineChain({
   name: "Robinhood Chain",
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: {
-    default: { http: ["https://rpc.chain.robinhood.com/rpc"] },
+    default: { http: ["https://rpc.mainnet.chain.robinhood.com"] },
   },
   blockExplorers: {
     default: {
       name: "Blockscout",
-      url: "https://explorer.chain.robinhood.com",
+      url: "https://robinhoodchain.blockscout.com",
     },
   },
 });

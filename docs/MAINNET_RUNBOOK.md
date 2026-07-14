@@ -56,7 +56,7 @@ pnpm deploy:mainnet
 npx hardhat verify --network robinhoodMainnet <address> <constructor args…>
 ```
 
-Sanity-check on Blockscout (`https://explorer.chain.robinhood.com`):
+Sanity-check on Blockscout (`https://robinhoodchain.blockscout.com`):
 `owner()`, `feeRecipient()`, `arbiter()`, `feeBps()`, `minReward()`,
 `disputeWindow()` all match §2.
 
@@ -78,7 +78,7 @@ from preview mode to on-chain writes automatically once the address is set.
 ```bash
 cd packages/contracts
 BOUNTY_ESCROW_ADDRESS=0x… \
-RPC_URL=https://rpc.chain.robinhood.com/rpc \
+RPC_URL=https://rpc.mainnet.chain.robinhood.com \
 ALERT_WEBHOOK_URL=https://hooks.slack.com/…   # optional \
 pnpm monitor
 ```

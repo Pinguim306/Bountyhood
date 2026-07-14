@@ -36,7 +36,7 @@ pull-payment fallback: if a push fails, the amount is credited to
 | Network | Chain ID | RPC (default) |
 | --- | --- | --- |
 | Robinhood testnet | 46630 | `https://rpc.testnet.chain.robinhood.com/rpc` |
-| Robinhood mainnet | 4663 | `https://rpc.chain.robinhood.com/rpc` |
+| Robinhood mainnet | 4663 | `https://rpc.mainnet.chain.robinhood.com` |
 
 Gas is paid in ETH. Override RPCs and the deployer key via env vars (see
 `.env.example`).
