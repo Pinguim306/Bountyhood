@@ -23,6 +23,9 @@ export function Header() {
             <Link href="/activity" className="transition hover:text-white">
               Activity
             </Link>
+            <Link href="/docs" className="transition hover:text-white">
+              Docs
+            </Link>
             <Link href="/create" className="transition hover:text-white">
               Create
             </Link>
