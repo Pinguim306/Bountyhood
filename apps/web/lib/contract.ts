@@ -12,6 +12,14 @@ export const BOUNTY_ESCROW_ADDRESS = (process.env
 
 export const isContractConfigured = BOUNTY_ESCROW_ADDRESS.length === 42;
 
+/**
+ * Official Bountyhood token contract. Displayed across the site as an
+ * anti-impersonation reference — anything else claiming to be the Bountyhood
+ * token is not ours.
+ */
+export const OFFICIAL_TOKEN_ADDRESS =
+  "0x4fb665cb45c6903b55e31cdf77fd8e65a65bd236";
+
 /** On-chain status enum, mirrored from BountyEscrow.sol. */
 export enum BountyStatus {
   Open = 0,
