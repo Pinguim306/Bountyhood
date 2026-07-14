@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ConnectButton } from "./ConnectButton";
+import { LogoMark } from "./Logo";
 
 export function Header() {
   return (
@@ -7,9 +8,7 @@ export function Header() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-lime font-black text-ink-950">
-              B
-            </span>
+            <LogoMark size={32} className="rounded-lg" />
             <span className="text-lg font-bold tracking-tight">
               Bounty<span className="text-lime">hood</span>
             </span>
