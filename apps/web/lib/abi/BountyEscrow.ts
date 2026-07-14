@@ -1,3 +1,5 @@
+// Auto-generated from packages/contracts artifacts — do not edit by hand.
+// Regenerate with: pnpm --filter @bountyhood/contracts export-abi
 export const bountyEscrowAbi = [
   {
     "inputs": [
@@ -124,6 +126,11 @@ export const bountyEscrowAbi = [
   },
   {
     "inputs": [],
+    "name": "RewardTooLarge",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "RewardTooLow",
     "type": "error"
   },
@@ -151,7 +158,7 @@ export const bountyEscrowAbi = [
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "arbiter",
         "type": "address"
@@ -333,7 +340,7 @@ export const bountyEscrowAbi = [
         "type": "uint256"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "feeRecipient",
         "type": "address"
@@ -511,9 +518,19 @@ export const bountyEscrowAbi = [
         "type": "uint8"
       },
       {
+        "internalType": "uint16",
+        "name": "feeBps",
+        "type": "uint16"
+      },
+      {
         "internalType": "uint32",
         "name": "submissionCount",
         "type": "uint32"
+      },
+      {
+        "internalType": "uint64",
+        "name": "disputeWindow",
+        "type": "uint64"
       },
       {
         "internalType": "bytes32",
@@ -638,9 +655,19 @@ export const bountyEscrowAbi = [
             "type": "uint8"
           },
           {
+            "internalType": "uint16",
+            "name": "feeBps",
+            "type": "uint16"
+          },
+          {
             "internalType": "uint32",
             "name": "submissionCount",
             "type": "uint32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "disputeWindow",
+            "type": "uint64"
           },
           {
             "internalType": "bytes32",

@@ -11,6 +11,17 @@ const { ethers, network } = require("hardhat");
 async function main() {
   const [deployer] = await ethers.getSigners();
   const owner = deployer.address;
+
+  // Mainnet refuses to fall back to the deployer for revenue/authority roles:
+  // fees must knowingly go to the platform wallet, and the arbiter should be a
+  // separate key from the (typically hot) deployer.
+  const isMainnet = network.config.chainId === 4663;
+  if (isMainnet && (!process.env.FEE_RECIPIENT || !process.env.ARBITER)) {
+    throw new Error(
+      "Mainnet deploy requires explicit FEE_RECIPIENT and ARBITER env vars " +
+        "(fees default to the deployer otherwise — almost never what you want)."
+    );
+  }
   const feeRecipient = process.env.FEE_RECIPIENT || owner;
   const arbiter = process.env.ARBITER || owner;
   const feeBps = BigInt(process.env.FEE_BPS || "250");
