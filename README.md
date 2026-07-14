@@ -16,6 +16,10 @@ but focused solely on bounties — no trading, no launchpad.
 4. **Expire / dispute** — if no submission is approved, the creator reclaims the
    escrow after the deadline and a dispute window. A hunter can open a dispute in
    that window, which an arbiter resolves.
+5. **Moderation** — anyone can report a bounty that breaks the
+   [content policy](apps/web/app/terms/page.tsx); moderators (wallets in
+   `NEXT_PUBLIC_ADMIN_ADDRESSES`) review reports and disputes at `/admin`.
+   Hiding a bounty is UI-only — the escrow always follows the contract.
 
 ## Repository layout
 
@@ -45,7 +49,8 @@ Runs in **preview mode** with sample data until a contract is deployed. Copy
       cancel, reclaim)
 - [x] **Phase 4** — discovery & reputation (public profiles, hunter/creator
       leaderboards, activity feed)
-- [ ] **Phase 5** — moderation & disputes
+- [x] **Phase 5** — moderation & disputes (report button, admin panel with
+      report/dispute queues, hunter disputes, terms & content policy)
 - [ ] **Phase 6** — mainnet
 
 See [`docs/PLANO_DE_DESENVOLVIMENTO.md`](docs/PLANO_DE_DESENVOLVIMENTO.md) for the

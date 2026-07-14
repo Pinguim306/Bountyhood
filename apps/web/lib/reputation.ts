@@ -148,7 +148,8 @@ export type ActivityKind =
   | "submitted"
   | "approved"
   | "reclaimed"
-  | "cancelled";
+  | "cancelled"
+  | "disputed";
 
 export interface ActivityEvent {
   id: string;
@@ -204,6 +205,17 @@ export function activityFeed(
         kind: "reclaimed",
         at: b.deadline * 1000,
         actor: b.creator,
+        bountyId: b.id,
+        bountyTitle: b.title,
+        rewardWei: b.rewardWei,
+      });
+    }
+    if (b.status === BountyStatus.Disputed) {
+      events.push({
+        id: `disputed-${b.id}`,
+        kind: "disputed",
+        at: b.deadline * 1000,
+        actor: b.disputedBy ?? b.creator,
         bountyId: b.id,
         bountyTitle: b.title,
         rewardWei: b.rewardWei,

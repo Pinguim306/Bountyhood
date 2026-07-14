@@ -154,7 +154,15 @@ export default function CreatePage() {
             {submitting ? "Publishing…" : "Publish & escrow reward"}
           </button>
           <span className="text-xs text-zinc-500">
-            The reward locks at publish and can’t be withdrawn while open.
+            The reward locks at publish and can’t be withdrawn while open. By
+            publishing you agree to the{" "}
+            <a
+              href="/terms"
+              className="text-zinc-400 underline underline-offset-2"
+            >
+              terms & content policy
+            </a>
+            .
           </span>
         </div>
       </form>

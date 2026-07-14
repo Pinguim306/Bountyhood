@@ -80,5 +80,66 @@ export function useBountyActions() {
     [onChain]
   );
 
-  return { submit, approve, lifecycle };
+  const dispute = useCallback(
+    async (bountyId: string, caller: string) => {
+      if (isContractConfigured) {
+        await onChain("openDispute", [BigInt(bountyId)]);
+      }
+      const res = await fetch(`/api/bounties/${bountyId}/actions`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "dispute", caller }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to open dispute");
+      return data;
+    },
+    [onChain]
+  );
+
+  /** Arbiter settles a dispute; null submission refunds the creator. */
+  const resolve = useCallback(
+    async (
+      bountyId: string,
+      caller: string,
+      submissionId: string | null,
+      hunter: string | null
+    ) => {
+      if (isContractConfigured) {
+        const winner =
+          hunter ?? "0x0000000000000000000000000000000000000000";
+        await onChain("resolveDispute", [BigInt(bountyId), winner]);
+      }
+      const res = await fetch(`/api/bounties/${bountyId}/actions`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          action: "resolve",
+          caller,
+          submissionId: submissionId ?? "",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to resolve dispute");
+      return data;
+    },
+    [onChain]
+  );
+
+  /** Flag a bounty for moderation. Off-chain only. */
+  const report = useCallback(
+    async (bountyId: string, reporter: string, reason: string, details: string) => {
+      const res = await fetch(`/api/bounties/${bountyId}/report`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ reporter, reason, details }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to report");
+      return data;
+    },
+    []
+  );
+
+  return { submit, approve, lifecycle, dispute, resolve, report };
 }
