@@ -7,11 +7,14 @@
     "seed-solc": "node scripts/seed-solc.js",
     "build": "hardhat compile",
     "test": "hardhat test",
+    "export-abi": "node scripts/export-abi.js",
     "deploy:testnet": "hardhat run scripts/deploy.js --network robinhoodTestnet",
-    "deploy:mainnet": "hardhat run scripts/deploy.js --network robinhoodMainnet"
+    "deploy:mainnet": "hardhat run scripts/deploy.js --network robinhoodMainnet",
+    "monitor": "node scripts/monitor.js"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "ethers": "^6.13.0",
     "hardhat": "^2.22.0",
     "solc": "0.8.24"
   },

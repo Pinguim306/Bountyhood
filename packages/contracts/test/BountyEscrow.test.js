@@ -102,6 +102,15 @@ describe("BountyEscrow", function () {
       ).to.be.revertedWithCustomError(escrow, "DeadlineInPast");
     });
 
+    it("reverts when the reward exceeds uint96 (no silent truncation)", async function () {
+      const { escrow, creator } = ctx;
+      await expect(
+        escrow.connect(creator).createBounty(await futureDeadline(), META, {
+          value: 2n ** 96n, // one above type(uint96).max
+        })
+      ).to.be.revertedWithCustomError(escrow, "RewardTooLarge");
+    });
+
     it("assigns incrementing ids", async function () {
       const { escrow, creator } = ctx;
       const deadline = await futureDeadline();
@@ -403,6 +412,65 @@ describe("BountyEscrow", function () {
       expect(await escrow.arbiter()).to.equal(other.address);
       expect(await escrow.minReward()).to.equal(123n);
       expect(await escrow.disputeWindow()).to.equal(999n);
+    });
+  });
+
+  describe("term snapshots (config changes are never retroactive)", function () {
+    let id, deadline;
+    const reward = ethers.parseEther("1");
+    beforeEach(async function () {
+      deadline = await futureDeadline();
+      await ctx.escrow.connect(ctx.creator).createBounty(deadline, META, { value: reward });
+      id = 1n;
+      await ctx.escrow.connect(ctx.hunter).submit(id, PROOF);
+    });
+
+    it("a fee raise does not change the payout of a live bounty", async function () {
+      const { escrow, owner, creator, hunter, feeRecipient } = ctx;
+      await escrow.connect(owner).setFee(1000, feeRecipient.address); // raise to the 10% cap
+      const fee = (reward * FEE_BPS) / 10000n; // still the rate at creation
+      const payout = reward - fee;
+      await expect(
+        escrow.connect(creator).approve(id, hunter.address)
+      ).to.changeEtherBalances([hunter, feeRecipient], [payout, fee]);
+    });
+
+    it("a fee raise applies to bounties created afterwards", async function () {
+      const { escrow, owner, creator, hunter, feeRecipient } = ctx;
+      await escrow.connect(owner).setFee(1000, feeRecipient.address);
+      await escrow.connect(creator).createBounty(await futureDeadline(), META, { value: reward });
+      await escrow.connect(hunter).submit(2n, PROOF);
+      const fee = (reward * 1000n) / 10000n;
+      await expect(
+        escrow.connect(creator).approve(2n, hunter.address)
+      ).to.changeEtherBalances([hunter, feeRecipient], [reward - fee, fee]);
+    });
+
+    it("shrinking the dispute window cannot unlock an early reclaim", async function () {
+      const { escrow, owner, creator } = ctx;
+      await escrow.connect(owner).setDisputeWindow(0);
+      await time.increaseTo(deadline + 1);
+      // The bounty keeps its 3-day window; reclaim right after the deadline fails.
+      await expect(escrow.connect(creator).reclaim(id)).to.be.revertedWithCustomError(
+        escrow,
+        "DisputeWindowOpen"
+      );
+    });
+
+    it("hunters keep their original dispute window after a shrink", async function () {
+      const { escrow, owner, hunter } = ctx;
+      await escrow.connect(owner).setDisputeWindow(0);
+      await time.increaseTo(deadline + DISPUTE_WINDOW - 60); // inside the original window
+      await expect(escrow.connect(hunter).openDispute(id)).to.emit(escrow, "DisputeOpened");
+    });
+
+    it("fee recipient rotation applies immediately (operational, not a term)", async function () {
+      const { escrow, owner, creator, hunter, other } = ctx;
+      await escrow.connect(owner).setFee(FEE_BPS, other.address); // same rate, new wallet
+      const fee = (reward * FEE_BPS) / 10000n;
+      await expect(
+        escrow.connect(creator).approve(id, hunter.address)
+      ).to.changeEtherBalances([hunter, other], [reward - fee, fee]);
     });
   });
 

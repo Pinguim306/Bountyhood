@@ -51,7 +51,10 @@ Runs in **preview mode** with sample data until a contract is deployed. Copy
       leaderboards, activity feed)
 - [x] **Phase 5** — moderation & disputes (report button, admin panel with
       report/dispute queues, hunter disputes, terms & content policy)
-- [ ] **Phase 6** — mainnet
+- [x] **Phase 6** — mainnet readiness: [security review](docs/SECURITY_REVIEW.md)
+      (self-audit + Slither, contract hardening, 40 tests), event monitor with
+      anomaly alerts, and the [launch runbook](docs/MAINNET_RUNBOOK.md).
+      *The deploy itself runs from a funded wallet following the runbook.*
 
 See [`docs/PLANO_DE_DESENVOLVIMENTO.md`](docs/PLANO_DE_DESENVOLVIMENTO.md) for the
 full plan (in Portuguese).
@@ -96,3 +99,11 @@ The frontend's action layer (`lib/useBountyActions.ts`) already routes
 `submit` / `approve` / `cancel` / `reclaim` to the contract when an address is
 configured — no other code changes needed. Deployment must run from a network
 that can reach the Robinhood RPC (some CI/sandbox egress policies block it).
+
+For **mainnet**, follow [`docs/MAINNET_RUNBOOK.md`](docs/MAINNET_RUNBOOK.md):
+it covers wallet roles (deployer / fee treasury / arbiter), recommended
+parameters, Blockscout verification, and the event monitor
+(`pnpm --filter @bountyhood/contracts monitor`) that alerts on disputes,
+admin config changes, and unusually large bounties. Platform revenue is the
+payout fee (`FEE_BPS`, default 2.5%) sent to `FEE_RECIPIENT` on every approved
+or arbiter-awarded bounty; each bounty locks its rate at creation.

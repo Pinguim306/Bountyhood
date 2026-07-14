@@ -39,7 +39,11 @@ contract BountyEscrow is Ownable, ReentrancyGuard {
         address winner; // hunter paid on approval / dispute resolution
         uint64 deadline; // unix seconds; submissions accepted until here
         Status status;
+        // Terms below are snapshotted at creation so later owner config changes
+        // never apply retroactively to funds already in escrow.
+        uint16 feeBps; // fee rate this bounty pays out at (MAX_FEE_BPS fits uint16)
         uint32 submissionCount;
+        uint64 disputeWindow; // seconds hunters have to dispute after the deadline
         bytes32 metadataHash; // keccak256 of the off-chain bounty document
     }
 
@@ -51,9 +55,9 @@ contract BountyEscrow is Ownable, ReentrancyGuard {
     uint256 public constant BPS_DENOMINATOR = 10_000;
 
     uint256 public nextBountyId = 1;
-    uint256 public feeBps; // current platform fee in basis points
+    uint256 public feeBps; // fee in bps applied to bounties created from now on
     uint256 public minReward; // minimum reward accepted at creation (anti-dust)
-    uint64 public disputeWindow; // seconds after deadline during which a dispute can be opened
+    uint64 public disputeWindow; // dispute window applied to bounties created from now on
     address public feeRecipient;
     address public arbiter; // resolves disputes; distinct from owner for separation of duties
 
@@ -82,16 +86,17 @@ contract BountyEscrow is Ownable, ReentrancyGuard {
     event DisputeResolved(uint256 indexed id, address indexed winner, uint256 amount);
     event Withdrawn(address indexed account, uint256 amount);
 
-    event FeeUpdated(uint256 feeBps, address feeRecipient);
+    event FeeUpdated(uint256 feeBps, address indexed feeRecipient);
     event MinRewardUpdated(uint256 minReward);
     event DisputeWindowUpdated(uint64 disputeWindow);
-    event ArbiterUpdated(address arbiter);
+    event ArbiterUpdated(address indexed arbiter);
 
     /* -------------------------------------------------------------------------- */
     /*                                   Errors                                   */
     /* -------------------------------------------------------------------------- */
 
     error RewardTooLow();
+    error RewardTooLarge();
     error DeadlineInPast();
     error NotCreator();
     error NotArbiter();
@@ -141,6 +146,7 @@ contract BountyEscrow is Ownable, ReentrancyGuard {
         returns (uint256 id)
     {
         if (msg.value < minReward) revert RewardTooLow();
+        if (msg.value > type(uint96).max) revert RewardTooLarge();
         if (deadline <= block.timestamp) revert DeadlineInPast();
 
         id = nextBountyId++;
@@ -150,7 +156,9 @@ contract BountyEscrow is Ownable, ReentrancyGuard {
             winner: address(0),
             deadline: deadline,
             status: Status.Open,
+            feeBps: uint16(feeBps), // snapshot; MAX_FEE_BPS (1000) always fits
             submissionCount: 0,
+            disputeWindow: disputeWindow, // snapshot
             metadataHash: metadataHash
         });
 
@@ -181,7 +189,7 @@ contract BountyEscrow is Ownable, ReentrancyGuard {
         b.status = Status.Paid;
         b.winner = hunter;
 
-        (uint256 payout, uint256 fee) = _split(b.reward);
+        (uint256 payout, uint256 fee) = _split(b.reward, b.feeBps);
         emit BountyApproved(id, hunter, payout, fee);
 
         _pay(hunter, payout);
@@ -206,7 +214,7 @@ contract BountyEscrow is Ownable, ReentrancyGuard {
         Bounty storage b = bounties[id];
         if (msg.sender != b.creator) revert NotCreator();
         if (b.status != Status.Open) revert WrongStatus();
-        if (block.timestamp <= uint256(b.deadline) + disputeWindow) revert DisputeWindowOpen();
+        if (block.timestamp <= uint256(b.deadline) + b.disputeWindow) revert DisputeWindowOpen();
 
         b.status = Status.Reclaimed;
         uint256 amount = b.reward;
@@ -220,7 +228,7 @@ contract BountyEscrow is Ownable, ReentrancyGuard {
         if (b.status != Status.Open) revert WrongStatus();
         if (!hasSubmitted[id][msg.sender]) revert NotASubmitter();
         if (block.timestamp <= b.deadline) revert DeadlineNotPassed();
-        if (block.timestamp > uint256(b.deadline) + disputeWindow) revert DisputeWindowClosed();
+        if (block.timestamp > uint256(b.deadline) + b.disputeWindow) revert DisputeWindowClosed();
 
         b.status = Status.Disputed;
         emit DisputeOpened(id, msg.sender);
@@ -241,7 +249,7 @@ contract BountyEscrow is Ownable, ReentrancyGuard {
             if (!hasSubmitted[id][winner]) revert WinnerNotSubmitter();
             b.status = Status.Paid;
             b.winner = winner;
-            (uint256 payout, uint256 fee) = _split(b.reward);
+            (uint256 payout, uint256 fee) = _split(b.reward, b.feeBps);
             emit DisputeResolved(id, winner, payout);
             _pay(winner, payout);
             if (fee > 0) _pay(feeRecipient, fee);
@@ -262,6 +270,9 @@ contract BountyEscrow is Ownable, ReentrancyGuard {
     /*                                Admin config                               */
     /* -------------------------------------------------------------------------- */
 
+    /// @notice Update the fee rate (future bounties only — live escrows keep
+    ///         their snapshotted rate) and the recipient (applies immediately,
+    ///         so the platform wallet can rotate without touching escrows).
     function setFee(uint256 feeBps_, address feeRecipient_) external onlyOwner {
         if (feeBps_ > MAX_FEE_BPS) revert FeeTooHigh();
         if (feeRecipient_ == address(0)) revert ZeroAddress();
@@ -275,6 +286,8 @@ contract BountyEscrow is Ownable, ReentrancyGuard {
         emit MinRewardUpdated(minReward_);
     }
 
+    /// @notice Update the dispute window for future bounties only — live
+    ///         escrows keep the window they were created with.
     function setDisputeWindow(uint64 disputeWindow_) external onlyOwner {
         disputeWindow = disputeWindow_;
         emit DisputeWindowUpdated(disputeWindow_);
@@ -294,9 +307,14 @@ contract BountyEscrow is Ownable, ReentrancyGuard {
         return bounties[id];
     }
 
-    /// @dev Splits a reward into hunter payout and platform fee.
-    function _split(uint256 reward) internal view returns (uint256 payout, uint256 fee) {
-        fee = (reward * feeBps) / BPS_DENOMINATOR;
+    /// @dev Splits a reward into hunter payout and platform fee at the bounty's
+    ///      snapshotted rate (never the current global rate).
+    function _split(uint256 reward, uint256 feeBps_)
+        internal
+        pure
+        returns (uint256 payout, uint256 fee)
+    {
+        fee = (reward * feeBps_) / BPS_DENOMINATOR;
         payout = reward - fee;
     }
 

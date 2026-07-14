@@ -16,7 +16,11 @@ module.exports = {
     },
   },
   networks: {
-    hardhat: {},
+    hardhat: {
+      // Large balances so tests can exercise the uint96 reward-overflow guard
+      // (type(uint96).max ≈ 7.9e28 wei).
+      accounts: { accountsBalance: "1000000000000000000000000000000" }, // 1e30 wei
+    },
     // Robinhood Chain testnet — Chain ID 46630
     robinhoodTestnet: {
       url: TESTNET_RPC,
