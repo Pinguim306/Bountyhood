@@ -18,6 +18,12 @@ export function Header() {
             <Link href="/" className="transition hover:text-white">
               Bounties
             </Link>
+            <Link href="/leaderboard" className="transition hover:text-white">
+              Leaderboard
+            </Link>
+            <Link href="/activity" className="transition hover:text-white">
+              Activity
+            </Link>
             <Link href="/create" className="transition hover:text-white">
               Create
             </Link>

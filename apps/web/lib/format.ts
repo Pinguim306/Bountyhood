@@ -26,6 +26,20 @@ export function timeLeft(deadline: number): { label: string; ended: boolean } {
   return { label: `${m}m left`, ended: false };
 }
 
+/** Compact "2h ago" style relative time from a unix-ms timestamp. */
+export function timeAgo(ms: number): string {
+  const secs = Math.floor((Date.now() - ms) / 1000);
+  if (secs < 60) return "just now";
+  const m = Math.floor(secs / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}d ago`;
+  const mo = Math.floor(d / 30);
+  return `${mo}mo ago`;
+}
+
 export const STATUS_META: Record<
   BountyStatus,
   { label: string; tone: string }

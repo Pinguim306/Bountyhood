@@ -1,13 +1,19 @@
 import Link from "next/link";
+import { ActivityFeed } from "@/components/ActivityFeed";
 import { BountyGrid } from "@/components/BountyGrid";
 import { BountyStatus, isContractConfigured } from "@/lib/contract";
 import { formatReward } from "@/lib/format";
-import { getBounties } from "@/lib/store";
+import { activityFeed } from "@/lib/reputation";
+import { getAllSubmissions, getBounties } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const bounties = await getBounties();
+  const [bounties, submissions] = await Promise.all([
+    getBounties(),
+    getAllSubmissions(),
+  ]);
+  const recent = activityFeed(bounties, submissions, 8);
   const openCount = bounties.filter((b) => b.status === BountyStatus.Open).length;
   const totalOpenReward = bounties
     .filter((b) => b.status === BountyStatus.Open)
@@ -79,6 +85,24 @@ export default async function HomePage() {
         </div>
         <BountyGrid bounties={bounties} />
       </section>
+
+      {/* Activity */}
+      {recent.length > 0 && (
+        <section className="pb-20">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white">Latest activity</h2>
+            <Link
+              href="/activity"
+              className="text-sm text-zinc-400 transition hover:text-lime"
+            >
+              View all →
+            </Link>
+          </div>
+          <div className="rounded-2xl border border-ink-800 bg-ink-900/40 px-5">
+            <ActivityFeed events={recent} />
+          </div>
+        </section>
+      )}
     </div>
   );
 }

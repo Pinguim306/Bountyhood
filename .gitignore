@@ -36,3 +36,6 @@ pnpm-debug.log*
 
 # Next.js local data store (MVP metadata)
 apps/web/.data/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
