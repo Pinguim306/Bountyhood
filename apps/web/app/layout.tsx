@@ -7,7 +7,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://bountyhood-web.vercel.app"
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://bountyhood.fun"
   ),
   title: "Bountyhood — on-chain bounties on Robinhood Chain",
   description:
