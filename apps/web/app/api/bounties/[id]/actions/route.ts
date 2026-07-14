@@ -1,29 +1,72 @@
 import { NextResponse } from "next/server";
 import { isAdminAddress } from "@/lib/admin";
+import { getSessionAddress } from "@/lib/auth";
+import { BountyStatus, isContractConfigured } from "@/lib/contract";
+import { isOnChainId, readBountyOnChain } from "@/lib/onchain";
 import {
   approveSubmission,
   cancelBounty,
+  getSubmissions,
   openDispute,
   reclaimBounty,
   resolveDispute,
 } from "@/lib/store";
 
 /**
- * Lifecycle actions in preview mode: approve a submission, cancel, reclaim,
- * open a dispute (hunter), or resolve one (arbiter). In live mode these are
- * contract calls; this endpoint mirrors the resulting state so the UI stays
- * consistent.
+ * Lifecycle actions. The caller identity comes from the SIWE session — never
+ * the body. With a contract configured, the API only mirrors state transitions
+ * it can confirm on-chain (the tx must already be mined), so the database can
+ * never diverge from the escrow.
  */
 export async function POST(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+  const caller = await getSessionAddress();
+  if (!caller)
+    return NextResponse.json(
+      { error: "Sign in with your wallet first" },
+      { status: 401 }
+    );
+
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  const { action, submissionId } = body as Record<string, string>;
 
-  const { action, caller, submissionId } = body as Record<string, string>;
-  if (!caller) {
-    return NextResponse.json({ error: "Connect a wallet first" }, { status: 400 });
+  // Expected on-chain status per action, checked when a contract is live.
+  const EXPECTED: Record<string, BountyStatus[]> = {
+    approve: [BountyStatus.Paid],
+    cancel: [BountyStatus.Cancelled],
+    reclaim: [BountyStatus.Reclaimed],
+    dispute: [BountyStatus.Disputed],
+    resolve: [BountyStatus.Paid, BountyStatus.Reclaimed],
+  };
+
+  if (isContractConfigured && isOnChainId(params.id) && EXPECTED[action]) {
+    let onChain;
+    try {
+      onChain = await readBountyOnChain(params.id);
+    } catch {
+      return NextResponse.json(
+        { error: "Could not verify the bounty on-chain — try again" },
+        { status: 502 }
+      );
+    }
+    if (!onChain || !EXPECTED[action].includes(onChain.status))
+      return NextResponse.json(
+        { error: "On-chain state doesn't match — confirm the transaction first" },
+        { status: 409 }
+      );
+    if (action === "approve" && submissionId) {
+      const winner = (await getSubmissions(params.id)).find(
+        (s) => s.id === submissionId
+      )?.hunter;
+      if (!winner || onChain.winner.toLowerCase() !== winner.toLowerCase())
+        return NextResponse.json(
+          { error: "On-chain winner doesn't match that submission" },
+          { status: 409 }
+        );
+    }
   }
 
   try {
@@ -42,8 +85,7 @@ export async function POST(
     } else if (action === "dispute") {
       bounty = await openDispute({ bountyId: params.id, caller });
     } else if (action === "resolve") {
-      // Arbiter-only. Preview mode trusts the caller address like every other
-      // action here; on-chain, the contract enforces the arbiter itself.
+      // Arbiter-only; on-chain, the contract enforces the arbiter itself.
       if (!isAdminAddress(caller))
         throw new Error("Only the platform arbiter can resolve disputes");
       bounty = await resolveDispute({

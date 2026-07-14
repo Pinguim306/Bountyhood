@@ -6,6 +6,7 @@ import { useAccount } from "wagmi";
 import { AddressLink } from "@/components/AddressLink";
 import { isAdminAddress } from "@/lib/admin";
 import { formatReward, timeAgo } from "@/lib/format";
+import { useAuth } from "@/lib/useAuth";
 import { useBountyActions } from "@/lib/useBountyActions";
 import type { Bounty, ModerationEntry, Report, Submission } from "@/lib/types";
 
@@ -22,6 +23,7 @@ interface AdminData {
  */
 export default function AdminPage() {
   const { address, isConnected } = useAccount();
+  const { isSignedIn, signIn } = useAuth();
   const { resolve } = useBountyActions();
   const admin = isAdminAddress(address);
 
@@ -30,14 +32,13 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!address) return;
-    const res = await fetch(`/api/admin?caller=${address}`);
+    const res = await fetch("/api/admin"); // session cookie carries identity
     if (res.ok) setData(await res.json());
-  }, [address]);
+  }, []);
 
   useEffect(() => {
-    if (admin) load();
-  }, [admin, load]);
+    if (admin && isSignedIn) load();
+  }, [admin, isSignedIn, load]);
 
   async function act(key: string, fn: () => Promise<unknown>) {
     setError(null);
@@ -56,7 +57,7 @@ export default function AdminPage() {
     fetch("/api/admin", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ caller: address, ...body }),
+      body: JSON.stringify(body),
     }).then(async (res) => {
       if (!res.ok) throw new Error((await res.json()).error || "Action failed");
     });
@@ -75,6 +76,24 @@ export default function AdminPage() {
           This wallet is not a moderator. Add it to{" "}
           <code className="text-zinc-400">NEXT_PUBLIC_ADMIN_ADDRESSES</code> to
           grant access.
+        </Notice>
+      </Shell>
+    );
+  }
+  if (!isSignedIn) {
+    return (
+      <Shell>
+        <Notice>
+          <p>
+            Prove you control this moderator wallet with a one-time signature
+            (free, no transaction).
+          </p>
+          <button
+            onClick={() => signIn().catch(() => {})}
+            className="mt-4 rounded-xl bg-lime px-5 py-2 text-sm font-semibold text-ink-950 transition hover:bg-lime-bright"
+          >
+            Sign in with wallet
+          </button>
         </Notice>
       </Shell>
     );

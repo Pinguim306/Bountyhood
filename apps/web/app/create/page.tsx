@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAccount } from "wagmi";
 import { isContractConfigured } from "@/lib/contract";
+import { useBountyActions } from "@/lib/useBountyActions";
 import { CATEGORIES } from "@/lib/types";
 
 function defaultDeadline(): string {
@@ -14,7 +15,8 @@ function defaultDeadline(): string {
 
 export default function CreatePage() {
   const router = useRouter();
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
+  const actions = useBountyActions();
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -32,20 +34,16 @@ export default function CreatePage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!isConnected || !address) {
+      setError("Connect your wallet first — the reward is escrowed from it.");
+      return;
+    }
     setSubmitting(true);
     try {
       const deadlineSec = Math.floor(new Date(form.deadline).getTime() / 1000);
-      const res = await fetch("/api/bounties", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          creator: address,
-          deadline: deadlineSec,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create bounty");
+      // Live mode: escrows the reward on-chain, then registers metadata under
+      // the on-chain id. Preview mode: API-only local bounty.
+      const data = await actions.create({ ...form, deadline: deadlineSec });
       router.push(`/bounty/${data.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -148,10 +146,14 @@ export default function CreatePage() {
         <div className="flex items-center gap-3 pt-2">
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || !isConnected}
             className="rounded-xl bg-lime px-6 py-3 font-semibold text-ink-950 transition hover:bg-lime-bright disabled:opacity-60"
           >
-            {submitting ? "Publishing…" : "Publish & escrow reward"}
+            {!isConnected
+              ? "Connect wallet to publish"
+              : submitting
+                ? "Publishing…"
+                : "Publish & escrow reward"}
           </button>
           <span className="text-xs text-zinc-500">
             The reward locks at publish and can’t be withdrawn while open. By
