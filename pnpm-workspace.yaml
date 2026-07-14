@@ -1,3 +1,10 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# pnpm blocks postinstall scripts by default; Prisma needs its engine
+# download/generate hooks to run.
+onlyBuiltDependencies:
+  - prisma
+  - "@prisma/client"
+  - "@prisma/engines"

@@ -39,3 +39,6 @@ apps/web/.data/
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Prisma generated client (regenerated at build)
+apps/web/lib/generated/
