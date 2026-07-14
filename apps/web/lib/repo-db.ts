@@ -3,12 +3,14 @@ import type { StoreRepo } from "./repo";
 import type {
   Bounty,
   ModerationEntry,
+  Profile,
   Report,
   ReportReason,
   Submission,
 } from "./types";
 import type {
   Bounty as DbBounty,
+  Profile as DbProfile,
   Report as DbReport,
   Submission as DbSubmission,
 } from "./generated/prisma/client";
@@ -141,4 +143,37 @@ export const dbRepo: StoreRepo = {
   async deleteModeration(bountyId: string) {
     await getPrisma().moderation.deleteMany({ where: { bountyId } });
   },
+
+  async readProfiles() {
+    const rows = await getPrisma().profile.findMany();
+    return rows.map(toProfile);
+  },
+  async upsertProfile(p: Profile) {
+    const data = {
+      address: p.address,
+      name: p.name ?? null,
+      bio: p.bio ?? null,
+      avatarUrl: p.avatarUrl ?? null,
+      xHandle: p.xHandle ?? null,
+      createdAt: BigInt(p.createdAt),
+      updatedAt: BigInt(p.updatedAt),
+    };
+    await getPrisma().profile.upsert({
+      where: { address: p.address },
+      create: data,
+      update: data,
+    });
+  },
 };
+
+function toProfile(row: DbProfile): Profile {
+  return {
+    address: row.address,
+    name: row.name ?? undefined,
+    bio: row.bio ?? undefined,
+    avatarUrl: row.avatarUrl ?? undefined,
+    xHandle: row.xHandle ?? undefined,
+    createdAt: Number(row.createdAt),
+    updatedAt: Number(row.updatedAt),
+  };
+}

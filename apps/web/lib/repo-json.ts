@@ -1,7 +1,13 @@
 import { promises as fs } from "fs";
 import path from "path";
 import type { StoreRepo } from "./repo";
-import type { Bounty, ModerationEntry, Report, Submission } from "./types";
+import type {
+  Bounty,
+  ModerationEntry,
+  Profile,
+  Report,
+  Submission,
+} from "./types";
 
 /**
  * JSON-file repo: the zero-config backend for local dev and demos. Not for
@@ -13,6 +19,7 @@ const FILES = {
   submissions: path.join(DATA_DIR, "submissions.json"),
   reports: path.join(DATA_DIR, "reports.json"),
   moderation: path.join(DATA_DIR, "moderation.json"),
+  profiles: path.join(DATA_DIR, "profiles.json"),
 };
 
 async function readJson<T>(file: string): Promise<T[]> {
@@ -61,4 +68,8 @@ export const jsonRepo: StoreRepo = {
       rows.filter((m) => m.bountyId !== bountyId)
     );
   },
+
+  readProfiles: () => readJson<Profile>(FILES.profiles),
+  upsertProfile: (p) =>
+    upsertBy(FILES.profiles, p, (x) => x.address === p.address),
 };

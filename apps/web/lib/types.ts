@@ -66,6 +66,20 @@ export interface ModerationEntry {
   hiddenAt: number; // unix ms
 }
 
+/**
+ * A user profile linked to a wallet. Created/edited only after the wallet
+ * proves ownership by signing a SIWE message (see lib/auth.ts).
+ */
+export interface Profile {
+  address: string; // wallet address, lowercase
+  name?: string; // display name, unique case-insensitive
+  bio?: string;
+  avatarUrl?: string; // https image URL; identicon fallback when unset
+  xHandle?: string; // X/Twitter handle without the @
+  createdAt: number; // unix ms
+  updatedAt: number; // unix ms
+}
+
 export const CATEGORIES = [
   "Development",
   "Design",

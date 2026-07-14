@@ -1,6 +1,12 @@
 import { jsonRepo } from "./repo-json";
 import { dbRepo } from "./repo-db";
-import type { Bounty, ModerationEntry, Report, Submission } from "./types";
+import type {
+  Bounty,
+  ModerationEntry,
+  Profile,
+  Report,
+  Submission,
+} from "./types";
 
 /**
  * Persistence boundary for the off-chain store. Business rules live in
@@ -23,6 +29,8 @@ export interface StoreRepo {
   readModeration(): Promise<ModerationEntry[]>;
   upsertModeration(m: ModerationEntry): Promise<void>;
   deleteModeration(bountyId: string): Promise<void>;
+  readProfiles(): Promise<Profile[]>;
+  upsertProfile(p: Profile): Promise<void>;
 }
 
 export const usingDatabase = !!process.env.DATABASE_URL;

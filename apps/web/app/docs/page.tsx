@@ -173,6 +173,12 @@ export default function DocsPage() {
           </Link>{" "}
           shows everything happening in real time.
         </p>
+        <p>
+          You can personalize your profile — display name, avatar, bio and X
+          handle. Editing requires a one-time wallet signature (free, no
+          transaction) proving you own the address, so nobody can impersonate
+          you.
+        </p>
       </Section>
 
       <Section title="8 · Moderation & safety">
