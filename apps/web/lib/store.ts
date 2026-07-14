@@ -363,7 +363,13 @@ export async function getProfile(
   address: string
 ): Promise<Profile | undefined> {
   const key = address.toLowerCase();
-  return (await repo.readProfiles()).find((p) => p.address === key);
+  try {
+    return (await repo.readProfiles()).find((p) => p.address === key);
+  } catch {
+    // Degrade to "no profile" if the table doesn't exist yet (fresh DB before
+    // `db:push`) — pages fall back to identicon + short address.
+    return undefined;
+  }
 }
 
 /**
