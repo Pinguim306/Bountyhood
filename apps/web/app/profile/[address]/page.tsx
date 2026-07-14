@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { BountyCard } from "@/components/BountyCard";
 import { Identicon } from "@/components/Identicon";
+import { ProfileEditor } from "@/components/ProfileEditor";
 import { StatTile } from "@/components/StatTile";
 import { formatReward, shortAddress } from "@/lib/format";
 import {
@@ -11,7 +12,7 @@ import {
   bountiesWonBy,
   profileStats,
 } from "@/lib/reputation";
-import { getAllSubmissions, getBounties } from "@/lib/store";
+import { getAllSubmissions, getBounties, getProfile } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -25,9 +26,10 @@ export default async function ProfilePage({
   const address = decodeURIComponent(params.address);
   if (!isAddress(address)) notFound();
 
-  const [bounties, submissions] = await Promise.all([
+  const [bounties, submissions, profile] = await Promise.all([
     getBounties(),
     getAllSubmissions(),
+    getProfile(address),
   ]);
 
   const stats = profileStats(address, bounties, submissions);
@@ -51,16 +53,45 @@ export default async function ProfilePage({
       </Link>
 
       {/* Identity */}
-      <div className="mt-4 flex items-center gap-4">
-        <Identicon address={address} size={64} />
-        <div className="min-w-0">
-          <h1 className="truncate font-mono text-2xl font-bold text-white">
-            {shortAddress(address)}
+      <div className="mt-4 flex flex-wrap items-center gap-4">
+        {profile?.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={profile.avatarUrl}
+            alt=""
+            width={64}
+            height={64}
+            className="h-16 w-16 shrink-0 rounded-full object-cover ring-1 ring-white/10"
+          />
+        ) : (
+          <Identicon address={address} size={64} />
+        )}
+        <div className="min-w-0 flex-1">
+          <h1
+            className={`truncate text-2xl font-bold text-white ${
+              profile?.name ? "" : "font-mono"
+            }`}
+          >
+            {profile?.name ?? shortAddress(address)}
           </h1>
           <div className="mt-1 truncate font-mono text-xs text-zinc-600">
             {address}
           </div>
+          {profile?.bio && (
+            <p className="mt-2 max-w-xl text-sm text-zinc-400">{profile.bio}</p>
+          )}
+          {profile?.xHandle && (
+            <a
+              href={`https://x.com/${profile.xHandle}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-1 inline-block text-xs text-zinc-500 transition hover:text-lime"
+            >
+              𝕏 @{profile.xHandle}
+            </a>
+          )}
         </div>
+        <ProfileEditor address={address} initial={profile ?? null} />
       </div>
 
       {!hasActivity && (

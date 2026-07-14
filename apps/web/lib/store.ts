@@ -7,6 +7,7 @@ import type {
   Bounty,
   BountyMetadata,
   ModerationEntry,
+  Profile,
   Report,
   ReportReason,
   Submission,
@@ -342,4 +343,94 @@ export async function hideBounty(input: {
 
 export async function unhideBounty(bountyId: string): Promise<void> {
   await repo.deleteModeration(bountyId);
+}
+
+/* -------------------------------- profiles -------------------------------- */
+
+const NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9 _.\-]{1,30}[a-zA-Z0-9]$/;
+const RESERVED_NAMES = new Set([
+  "admin",
+  "administrator",
+  "arbiter",
+  "moderator",
+  "bountyhood",
+  "official",
+  "support",
+  "system",
+]);
+
+export async function getProfile(
+  address: string
+): Promise<Profile | undefined> {
+  const key = address.toLowerCase();
+  try {
+    return (await repo.readProfiles()).find((p) => p.address === key);
+  } catch {
+    // Degrade to "no profile" if the table doesn't exist yet (fresh DB before
+    // `db:push`) — pages fall back to identicon + short address.
+    return undefined;
+  }
+}
+
+/**
+ * Create/update the profile for a wallet. The caller address comes from a
+ * verified SIWE session (see lib/auth.ts) — never from the request body.
+ */
+export async function updateProfile(input: {
+  address: string;
+  name?: string;
+  bio?: string;
+  avatarUrl?: string;
+  xHandle?: string;
+}): Promise<Profile> {
+  const address = input.address.toLowerCase();
+
+  const name = input.name?.trim();
+  if (name) {
+    if (!NAME_RE.test(name))
+      throw new Error(
+        "Name must be 3-32 chars: letters, numbers, spaces, . _ -"
+      );
+    if (RESERVED_NAMES.has(name.toLowerCase().replace(/[\s_.\-]/g, "")))
+      throw new Error("That name is reserved");
+    const taken = (await repo.readProfiles()).some(
+      (p) =>
+        p.address !== address &&
+        p.name?.toLowerCase() === name.toLowerCase()
+    );
+    if (taken) throw new Error("That name is already taken");
+  }
+
+  const bio = input.bio?.trim().slice(0, 280);
+
+  const avatarUrl = input.avatarUrl?.trim();
+  if (avatarUrl) {
+    let url: URL;
+    try {
+      url = new URL(avatarUrl);
+    } catch {
+      throw new Error("Avatar must be a valid URL");
+    }
+    if (url.protocol !== "https:")
+      throw new Error("Avatar URL must use https");
+    if (avatarUrl.length > 500) throw new Error("Avatar URL is too long");
+  }
+
+  const xHandle = input.xHandle?.trim().replace(/^@/, "");
+  if (xHandle && !/^[A-Za-z0-9_]{1,15}$/.test(xHandle))
+    throw new Error("Invalid X handle");
+
+  const existing = await getProfile(address);
+  const now = Date.now();
+  const profile: Profile = {
+    address,
+    name: name || undefined,
+    bio: bio || undefined,
+    avatarUrl: avatarUrl || undefined,
+    xHandle: xHandle || undefined,
+    createdAt: existing?.createdAt ?? now,
+    updatedAt: now,
+  };
+  await repo.upsertProfile(profile);
+  return profile;
 }

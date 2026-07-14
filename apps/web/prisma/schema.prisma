@@ -64,3 +64,15 @@ model Moderation {
   moderator String
   hiddenAt  BigInt // unix ms
 }
+
+model Profile {
+  address   String  @id // wallet address, lowercase
+  name      String? // display name, unique case-insensitive (enforced in store)
+  bio       String?
+  avatarUrl String?
+  xHandle   String? // X/Twitter handle without the @
+  createdAt BigInt // unix ms
+  updatedAt BigInt // unix ms
+
+  @@index([name])
+}
