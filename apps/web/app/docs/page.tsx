@@ -159,29 +159,69 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      <Section title="7 · Reputation">
+      <Section title="7 · Accounts & sign-in">
+        <p>
+          Your wallet <em>is</em> your account — there&apos;s no email, no
+          password, no sign-up form. The first time you do something that writes
+          data (create a bounty, submit work, edit your profile, report), your
+          wallet asks you to sign a short message.
+        </p>
+        <ul>
+          <li>
+            <strong className="text-zinc-200">Free and gasless.</strong> It&apos;s
+            a signature, not a transaction — nothing leaves your wallet and no
+            gas is spent.
+          </li>
+          <li>
+            It proves you control the address, so nobody can act as you or edit
+            your profile. The session lasts 30 days.
+          </li>
+          <li>
+            Separate from the on-chain transactions that move money (escrowing a
+            reward, paying out) — those still happen on-chain as usual.
+          </li>
+        </ul>
+      </Section>
+
+      <Section title="8 · Profiles & reputation">
         <p>
           Every wallet has a public{" "}
           <Link href="/leaderboard" className="text-lime hover:underline">
             profile
-          </Link>{" "}
-          built from on-platform activity: bounties won, total earned,
-          submissions, bounties posted and paid out. The leaderboard ranks the
-          top hunters by earnings and top creators by rewards funded. The{" "}
+          </Link>
+          . You can personalize it with a display name, avatar, bio and X
+          handle — editing needs the one-time signature above, so a profile
+          always belongs to the real wallet owner.
+        </p>
+        <ul>
+          <li>
+            Display names are <strong className="text-zinc-200">unique</strong>{" "}
+            (case-insensitive) and platform names like &quot;admin&quot; are
+            reserved — no impersonating the team or other users.
+          </li>
+          <li>
+            Your name and avatar then appear everywhere your address does —
+            bounty cards, the leaderboard, submissions, the activity feed. Your
+            full wallet address stays one click away, on your profile.
+          </li>
+          <li>
+            Haven&apos;t set one up? You still show up, as a generated identicon
+            and short address — no profile required to use Bountyhood.
+          </li>
+        </ul>
+        <p>
+          Reputation is earned, not claimed: bounties won, total earned,
+          submissions, bounties posted and paid out are all computed from real
+          on-platform activity. The leaderboard ranks top hunters by earnings
+          and top creators by rewards funded, and the{" "}
           <Link href="/activity" className="text-lime hover:underline">
             activity feed
           </Link>{" "}
           shows everything happening in real time.
         </p>
-        <p>
-          You can personalize your profile — display name, avatar, bio and X
-          handle. Editing requires a one-time wallet signature (free, no
-          transaction) proving you own the address, so nobody can impersonate
-          you.
-        </p>
       </Section>
 
-      <Section title="8 · Moderation & safety">
+      <Section title="9 · Moderation & safety">
         <p>
           Every bounty page has a report button. Moderators review reports and
           can hide bounties that break the{" "}
@@ -194,7 +234,7 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      <Section title="9 · Contracts & addresses">
+      <Section title="10 · Contracts & addresses">
         <dl className="space-y-3 text-sm">
           <AddrRow
             label="Network"
