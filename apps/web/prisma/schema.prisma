@@ -1,0 +1,66 @@
+// Bountyhood off-chain store (Phase 6.5): metadata, submissions, reports and
+// moderation. Money/lifecycle state lives on-chain; when a contract is
+// deployed these rows mirror it (id = on-chain bounty id). Tables stay flat
+// (no relations) to mirror lib/types.ts one-to-one.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Bounty {
+  id              String  @id
+  title           String
+  description     String
+  deliverables    String
+  category        String
+  creator         String
+  createdAt       BigInt // unix ms
+  rewardWei       String
+  deadline        BigInt // unix seconds
+  status          Int
+  submissionCount Int
+  winner          String?
+  txHash          String?
+  disputedBy      String?
+
+  @@index([creator])
+  @@index([status])
+}
+
+model Submission {
+  id        String  @id
+  bountyId  String
+  hunter    String
+  summary   String
+  links     String
+  proofHash String
+  createdAt BigInt // unix ms
+  approved  Boolean
+
+  @@index([bountyId])
+  @@index([hunter])
+}
+
+model Report {
+  id        String @id
+  bountyId  String
+  reporter  String
+  reason    String
+  details   String
+  createdAt BigInt // unix ms
+  status    String // open | dismissed | actioned
+
+  @@index([status])
+}
+
+model Moderation {
+  bountyId  String @id
+  reason    String
+  moderator String
+  hiddenAt  BigInt // unix ms
+}

@@ -40,6 +40,21 @@ Runs in **preview mode** with sample data until a contract is deployed. Copy
 `apps/web/.env.example` to `.env.local` and set
 `NEXT_PUBLIC_BOUNTY_ESCROW_ADDRESS` to read live on-chain bounties.
 
+### Storage backends
+
+The off-chain store (metadata, submissions, reports, moderation) picks its
+backend automatically:
+
+- **No `DATABASE_URL`** — JSON files under `apps/web/.data/` with sample data.
+  Zero-config; fine locally, but useless on serverless hosts (read-only
+  filesystem).
+- **`DATABASE_URL` set** — Postgres via Prisma (Neon, Vercel Postgres,
+  Supabase…). No sample data; required for Vercel. Create the tables once:
+
+  ```bash
+  DATABASE_URL=postgres://… pnpm --filter @bountyhood/web db:push
+  ```
+
 ## Status
 
 - [x] **Phase 0** — monorepo, tooling, CI
