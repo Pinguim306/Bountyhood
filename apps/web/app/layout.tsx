@@ -6,6 +6,9 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://bountyhood-web.vercel.app"
+  ),
   title: "Bountyhood — on-chain bounties on Robinhood Chain",
   description:
     "Create bounties with escrowed rewards. Complete tasks, submit proof, get paid on-chain.",
