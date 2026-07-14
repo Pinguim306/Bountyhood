@@ -12,7 +12,7 @@ const artifact = require("../artifacts/contracts/BountyEscrow.sol/BountyEscrow.j
  *   - Withdrawn events (means an earlier push payment failed)
  *
  * Usage:
- *   BOUNTY_ESCROW_ADDRESS=0x… RPC_URL=https://rpc.chain.robinhood.com/rpc \
+ *   BOUNTY_ESCROW_ADDRESS=0x… RPC_URL=https://rpc.mainnet.chain.robinhood.com \
  *     node scripts/monitor.js
  *
  * Optional env:
@@ -23,7 +23,7 @@ const artifact = require("../artifacts/contracts/BountyEscrow.sol/BountyEscrow.j
  */
 
 const ADDRESS = process.env.BOUNTY_ESCROW_ADDRESS;
-const RPC_URL = process.env.RPC_URL || "https://rpc.chain.robinhood.com/rpc";
+const RPC_URL = process.env.RPC_URL || "https://rpc.mainnet.chain.robinhood.com";
 const POLL_INTERVAL = Number(process.env.POLL_INTERVAL_SEC || 15) * 1000;
 const ALERT_REWARD = ethers.parseEther(process.env.ALERT_REWARD_ETH || "5");
 const WEBHOOK = process.env.ALERT_WEBHOOK_URL;

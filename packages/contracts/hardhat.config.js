@@ -3,7 +3,7 @@ require("@nomicfoundation/hardhat-toolbox");
 const TESTNET_RPC =
   process.env.ROBINHOOD_TESTNET_RPC || "https://rpc.testnet.chain.robinhood.com/rpc";
 const MAINNET_RPC =
-  process.env.ROBINHOOD_MAINNET_RPC || "https://rpc.chain.robinhood.com/rpc";
+  process.env.ROBINHOOD_MAINNET_RPC || "https://rpc.mainnet.chain.robinhood.com";
 const DEPLOYER_KEY = process.env.DEPLOYER_PRIVATE_KEY;
 const accounts = DEPLOYER_KEY ? [DEPLOYER_KEY] : [];
 
@@ -53,8 +53,8 @@ module.exports = {
         network: "robinhoodMainnet",
         chainId: 4663,
         urls: {
-          apiURL: "https://explorer.chain.robinhood.com/api",
-          browserURL: "https://explorer.chain.robinhood.com",
+          apiURL: "https://robinhoodchain.blockscout.com/api",
+          browserURL: "https://robinhoodchain.blockscout.com",
         },
       },
     ],
