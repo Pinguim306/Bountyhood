@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { DISPUTE_WINDOW_SECS } from "@/lib/admin";
 import { activeChain } from "@/lib/chains";
-import {
-  BOUNTY_ESCROW_ADDRESS,
-  OFFICIAL_TOKEN_ADDRESS,
-  isContractConfigured,
-} from "@/lib/contract";
+import { BOUNTY_ESCROW_ADDRESS, isContractConfigured } from "@/lib/contract";
 
 export const metadata = {
   title: "Docs — How Bountyhood works",
@@ -243,7 +239,6 @@ export default function DocsPage() {
           {isContractConfigured && (
             <AddrRow label="Escrow contract" value={BOUNTY_ESCROW_ADDRESS} mono />
           )}
-          <AddrRow label="Official token" value={OFFICIAL_TOKEN_ADDRESS} mono />
         </dl>
         <p>
           The escrow contract is verified on Blockscout — you can read every
