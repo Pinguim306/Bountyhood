@@ -485,15 +485,24 @@ export async function updateProfile(input: {
 
   const avatarUrl = input.avatarUrl?.trim();
   if (avatarUrl) {
-    let url: URL;
-    try {
-      url = new URL(avatarUrl);
-    } catch {
-      throw new Error("Avatar must be a valid URL");
+    if (avatarUrl.startsWith("data:")) {
+      // Uploaded photo, re-encoded client-side to a small square (see
+      // ProfileEditor). Stored inline — no external image storage to run.
+      if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(avatarUrl))
+        throw new Error("Avatar upload must be a JPEG, PNG or WebP image");
+      if (avatarUrl.length > 200_000)
+        throw new Error("Avatar image is too large — try a smaller photo");
+    } else {
+      let url: URL;
+      try {
+        url = new URL(avatarUrl);
+      } catch {
+        throw new Error("Avatar must be a valid URL");
+      }
+      if (url.protocol !== "https:")
+        throw new Error("Avatar URL must use https");
+      if (avatarUrl.length > 500) throw new Error("Avatar URL is too long");
     }
-    if (url.protocol !== "https:")
-      throw new Error("Avatar URL must use https");
-    if (avatarUrl.length > 500) throw new Error("Avatar URL is too long");
   }
 
   const xHandle = input.xHandle?.trim().replace(/^@/, "");
