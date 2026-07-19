@@ -65,3 +65,24 @@ export async function hasSubmittedOnChain(
     args: [BigInt(id), hunter as `0x${string}`],
   });
 }
+
+/**
+ * True when `hash` is a successful transaction sent to the escrow contract —
+ * the sanity bar for storing it as a payment receipt. (The action's resulting
+ * state is checked separately via readBountyOnChain.)
+ */
+export async function isEscrowTx(hash: string): Promise<boolean> {
+  if (!client || !/^0x[a-fA-F0-9]{64}$/.test(hash)) return false;
+  try {
+    const receipt = await client.getTransactionReceipt({
+      hash: hash as `0x${string}`,
+    });
+    return (
+      receipt.status === "success" &&
+      receipt.to?.toLowerCase() ===
+        (BOUNTY_ESCROW_ADDRESS as string).toLowerCase()
+    );
+  } catch {
+    return false;
+  }
+}

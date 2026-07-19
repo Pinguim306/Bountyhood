@@ -154,6 +154,7 @@ export async function approveSubmission(input: {
   bountyId: string;
   submissionId: string;
   caller: string;
+  payoutTxHash?: string;
 }): Promise<Bounty> {
   const bounty = await getBounty(input.bountyId);
   if (!bounty) throw new Error("Bounty not found");
@@ -173,6 +174,7 @@ export async function approveSubmission(input: {
     ...bounty,
     status: BountyStatus.Paid,
     winner: target.hunter,
+    payoutTxHash: input.payoutTxHash ?? bounty.payoutTxHash,
   };
   await repo.upsertBounty(next);
   return next;
@@ -253,6 +255,7 @@ export async function openDispute(input: {
 export async function resolveDispute(input: {
   bountyId: string;
   winnerSubmissionId: string | null;
+  payoutTxHash?: string;
 }): Promise<Bounty> {
   const bounty = await getBounty(input.bountyId);
   if (!bounty) throw new Error("Bounty not found");
@@ -276,6 +279,7 @@ export async function resolveDispute(input: {
     ...bounty,
     status: BountyStatus.Paid,
     winner: target.hunter,
+    payoutTxHash: input.payoutTxHash ?? bounty.payoutTxHash,
   };
   await repo.upsertBounty(next);
   return next;

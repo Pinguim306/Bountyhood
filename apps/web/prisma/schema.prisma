@@ -26,6 +26,7 @@ model Bounty {
   submissionCount Int
   winner          String?
   txHash          String?
+  payoutTxHash    String?
   disputedBy      String?
 
   @@index([creator])

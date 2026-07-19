@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { isAdminAddress } from "@/lib/admin";
 import { getSessionAddress } from "@/lib/auth";
 import { BountyStatus, isContractConfigured } from "@/lib/contract";
-import { isOnChainId, readBountyOnChain } from "@/lib/onchain";
+import { isEscrowTx, isOnChainId, readBountyOnChain } from "@/lib/onchain";
 import {
   approveSubmission,
   cancelBounty,
@@ -32,6 +32,14 @@ export async function POST(
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   const { action, submissionId } = body as Record<string, string>;
+
+  // Payment receipt: only stored in live mode, and only after confirming it's
+  // a successful transaction to the escrow contract — never a bare claim.
+  let payoutTxHash: string | undefined;
+  const claimedTx = (body as Record<string, string>).payoutTxHash;
+  if (isContractConfigured && claimedTx && (await isEscrowTx(claimedTx))) {
+    payoutTxHash = claimedTx;
+  }
 
   // Expected on-chain status per action, checked when a contract is live.
   const EXPECTED: Record<string, BountyStatus[]> = {
@@ -77,6 +85,7 @@ export async function POST(
         bountyId: params.id,
         submissionId,
         caller,
+        payoutTxHash,
       });
     } else if (action === "cancel") {
       bounty = await cancelBounty({ bountyId: params.id, caller });
@@ -91,6 +100,7 @@ export async function POST(
       bounty = await resolveDispute({
         bountyId: params.id,
         winnerSubmissionId: submissionId || null,
+        payoutTxHash,
       });
     } else {
       return NextResponse.json({ error: "Unknown action" }, { status: 400 });

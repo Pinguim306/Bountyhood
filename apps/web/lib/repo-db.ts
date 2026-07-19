@@ -35,6 +35,7 @@ function toBounty(row: DbBounty): Bounty {
     submissionCount: row.submissionCount,
     winner: row.winner ?? undefined,
     txHash: row.txHash ?? undefined,
+    payoutTxHash: row.payoutTxHash ?? undefined,
     disputedBy: row.disputedBy ?? undefined,
   };
 }
@@ -54,6 +55,7 @@ function fromBounty(b: Bounty) {
     submissionCount: b.submissionCount,
     winner: b.winner ?? null,
     txHash: b.txHash ?? null,
+    payoutTxHash: b.payoutTxHash ?? null,
     disputedBy: b.disputedBy ?? null,
   };
 }
