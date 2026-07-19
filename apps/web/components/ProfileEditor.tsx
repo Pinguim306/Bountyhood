@@ -1,11 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
 import { useAuth } from "@/lib/useAuth";
 import type { Profile } from "@/lib/types";
+
+/**
+ * Re-encode a picked photo to a small centered-square JPEG data URL. Doing it
+ * in the browser keeps uploads tiny and lets us store the avatar inline —
+ * no external image storage needed.
+ */
+const AVATAR_SIZE = 256;
+
+async function fileToAvatarDataUrl(file: File): Promise<string> {
+  if (!file.type.startsWith("image/"))
+    throw new Error("Pick an image file (JPEG, PNG, WebP…)");
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error("Could not read that image"));
+      el.src = objectUrl;
+    });
+    const side = Math.min(img.naturalWidth, img.naturalHeight);
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = AVATAR_SIZE;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Could not process the image");
+    ctx.drawImage(
+      img,
+      (img.naturalWidth - side) / 2, // center crop to a square
+      (img.naturalHeight - side) / 2,
+      side,
+      side,
+      0,
+      0,
+      AVATAR_SIZE,
+      AVATAR_SIZE
+    );
+    return canvas.toDataURL("image/jpeg", 0.85);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
 
 /**
  * "Edit profile" flow, shown only to the profile's owner. First save requires
@@ -32,6 +72,19 @@ export function ProfileEditor({
   const [xHandle, setXHandle] = useState(initial?.xHandle ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-picking the same file
+    if (!file) return;
+    setError(null);
+    try {
+      setAvatarUrl(await fileToAvatarDataUrl(file));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not read the photo");
+    }
+  }
 
   if (!isOwner) return null;
 
@@ -103,15 +156,54 @@ export function ProfileEditor({
         className="mt-1 w-full resize-y rounded-xl border border-ink-700 bg-ink-950 px-3 py-2 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime/50"
       />
 
-      <label className="mt-3 block text-xs text-zinc-500">
-        Avatar URL (https)
-      </label>
-      <input
-        value={avatarUrl}
-        onChange={(e) => setAvatarUrl(e.target.value)}
-        placeholder="https://…/you.png"
-        className="mt-1 w-full rounded-xl border border-ink-700 bg-ink-950 px-3 py-2 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime/50"
-      />
+      <label className="mt-3 block text-xs text-zinc-500">Avatar</label>
+      <div className="mt-1 flex items-center gap-3">
+        {avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={avatarUrl}
+            alt="Avatar preview"
+            width={48}
+            height={48}
+            className="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-white/10"
+          />
+        ) : (
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-dashed border-ink-600 text-lg text-zinc-600">
+            ?
+          </div>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={pickPhoto}
+          className="hidden"
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="rounded-lg border border-ink-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-lime/50 hover:text-lime"
+        >
+          {avatarUrl ? "Change photo" : "Upload photo"}
+        </button>
+        {avatarUrl && (
+          <button
+            type="button"
+            onClick={() => setAvatarUrl("")}
+            className="text-xs text-zinc-500 hover:text-red-300"
+          >
+            Remove
+          </button>
+        )}
+      </div>
+      {!avatarUrl.startsWith("data:") && (
+        <input
+          value={avatarUrl}
+          onChange={(e) => setAvatarUrl(e.target.value)}
+          placeholder="…or paste an https image link"
+          className="mt-2 w-full rounded-xl border border-ink-700 bg-ink-950 px-3 py-2 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime/50"
+        />
+      )}
 
       <label className="mt-3 block text-xs text-zinc-500">X handle</label>
       <input

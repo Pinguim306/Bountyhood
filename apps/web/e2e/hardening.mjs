@@ -252,6 +252,24 @@ check(
   badAddr === 400 && r.status === 200 && Array.isArray(await r.json())
 );
 
+// 17. avatar upload: image data URLs accepted, non-image data URLs rejected
+const tinyJpeg = `data:image/jpeg;base64,${Buffer.from("fake-jpeg-bytes").toString("base64")}`;
+r = await fetch(`${BASE}/api/profile`, {
+  method: "PUT",
+  headers: { ...json, cookie: hunter.cookie },
+  body: JSON.stringify({ avatarUrl: tinyJpeg }),
+});
+const okUpload = r.status === 200;
+r = await fetch(`${BASE}/api/profile`, {
+  method: "PUT",
+  headers: { ...json, cookie: hunter.cookie },
+  body: JSON.stringify({ avatarUrl: "data:text/html;base64,PHNjcmlwdD4=" }),
+});
+check(
+  "avatar accepts image data URLs, rejects non-image",
+  okUpload && r.status === 400
+);
+
 const failed = results.filter((x) => !x.ok).length;
 console.log(failed === 0 ? "\nALL PASS" : `\n${failed} FAILED`);
 process.exit(failed === 0 ? 0 : 1);
