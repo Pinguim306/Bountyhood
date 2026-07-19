@@ -4,6 +4,7 @@ import { AddressLink } from "@/components/AddressLink";
 import { BountyWorkspace } from "@/components/BountyWorkspace";
 import { ReportButton } from "@/components/ReportButton";
 import { StatusBadge } from "@/components/StatusBadge";
+import { activeChain } from "@/lib/chains";
 import { BountyStatus } from "@/lib/contract";
 import { formatReward, timeLeft } from "@/lib/format";
 import { getBounty, getModerationFor } from "@/lib/store";
@@ -115,6 +116,22 @@ export default async function BountyPage({
                 <Row
                   label="Winner"
                   value={<AddressLink address={bounty.winner} withIcon={false} />}
+                />
+              )}
+              {bounty.payoutTxHash && (
+                <Row
+                  label="Payment proof"
+                  value={
+                    <a
+                      href={`${activeChain.blockExplorers.default.url}/tx/${bounty.payoutTxHash}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-mono text-lime underline-offset-2 hover:underline"
+                      title="View the payout transaction on Blockscout"
+                    >
+                      {bounty.payoutTxHash.slice(0, 10)}…{bounty.payoutTxHash.slice(-6)} ↗
+                    </a>
+                  }
                 />
               )}
             </dl>

@@ -18,7 +18,8 @@ export interface Bounty extends BountyMetadata {
   status: BountyStatus;
   submissionCount: number;
   winner?: string;
-  txHash?: string;
+  txHash?: string; // creation (escrow) transaction
+  payoutTxHash?: string; // approve/resolve transaction that paid the winner
   disputedBy?: string; // hunter who opened the dispute, while Disputed
 }
 

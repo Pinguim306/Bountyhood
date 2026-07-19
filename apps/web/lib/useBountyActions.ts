@@ -132,10 +132,16 @@ export function useBountyActions() {
   const approve = useCallback(
     async (bountyId: string, _caller: string, submissionId: string, hunter: string) => {
       await ensureSession();
+      let payoutTxHash: string | undefined;
       if (isContractConfigured) {
-        await onChain("approve", [BigInt(bountyId), hunter]);
+        const receipt = await onChain("approve", [BigInt(bountyId), hunter]);
+        payoutTxHash = receipt.transactionHash;
       }
-      return mirror(bountyId, { action: "approve", submissionId });
+      return mirror(bountyId, {
+        action: "approve",
+        submissionId,
+        ...(payoutTxHash ? { payoutTxHash } : {}),
+      });
     },
     [ensureSession, onChain, mirror]
   );
@@ -171,13 +177,16 @@ export function useBountyActions() {
       hunter: string | null
     ) => {
       await ensureSession();
+      let payoutTxHash: string | undefined;
       if (isContractConfigured) {
         const winner = hunter ?? "0x0000000000000000000000000000000000000000";
-        await onChain("resolveDispute", [BigInt(bountyId), winner]);
+        const receipt = await onChain("resolveDispute", [BigInt(bountyId), winner]);
+        if (hunter) payoutTxHash = receipt.transactionHash;
       }
       return mirror(bountyId, {
         action: "resolve",
         submissionId: submissionId ?? "",
+        ...(payoutTxHash ? { payoutTxHash } : {}),
       });
     },
     [ensureSession, onChain, mirror]

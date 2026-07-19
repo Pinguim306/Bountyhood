@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { DISPUTE_WINDOW_SECS } from "@/lib/admin";
+import { activeChain } from "@/lib/chains";
 import { BountyStatus } from "@/lib/contract";
 import { shortAddress } from "@/lib/format";
 import { useBountyActions } from "@/lib/useBountyActions";
@@ -195,9 +196,21 @@ export function BountyWorkspace({ bounty }: { bounty: Bounty }) {
                     className="text-sm text-zinc-300"
                   />
                   {s.approved ? (
-                    <span className="rounded-full border border-lime/50 bg-lime/10 px-2.5 py-0.5 text-xs font-semibold text-lime">
-                      Winner · paid
-                    </span>
+                    bounty.payoutTxHash ? (
+                      <a
+                        href={`${activeChain.blockExplorers.default.url}/tx/${bounty.payoutTxHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="View the payout transaction on Blockscout"
+                        className="rounded-full border border-lime/50 bg-lime/10 px-2.5 py-0.5 text-xs font-semibold text-lime transition hover:bg-lime/20"
+                      >
+                        Winner · paid ↗
+                      </a>
+                    ) : (
+                      <span className="rounded-full border border-lime/50 bg-lime/10 px-2.5 py-0.5 text-xs font-semibold text-lime">
+                        Winner · paid
+                      </span>
+                    )
                   ) : (
                     isCreator &&
                     isOpen && (
