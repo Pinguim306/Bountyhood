@@ -6,6 +6,7 @@ import { SEED_BOUNTIES, SEED_REPORTS, SEED_SUBMISSIONS } from "./seed";
 import type {
   Bounty,
   BountyMetadata,
+  DisputeComment,
   ModerationEntry,
   Profile,
   Report,
@@ -263,7 +264,11 @@ export async function resolveDispute(input: {
     throw new Error("Bounty is not disputed");
 
   if (!input.winnerSubmissionId) {
-    const next: Bounty = { ...bounty, status: BountyStatus.Reclaimed };
+    const next: Bounty = {
+      ...bounty,
+      status: BountyStatus.Reclaimed,
+      disputeOutcome: "creator",
+    };
     await repo.upsertBounty(next);
     return next;
   }
@@ -280,9 +285,58 @@ export async function resolveDispute(input: {
     status: BountyStatus.Paid,
     winner: target.hunter,
     payoutTxHash: input.payoutTxHash ?? bounty.payoutTxHash,
+    disputeOutcome: "hunter",
   };
   await repo.upsertBounty(next);
   return next;
+}
+
+/* ---------------------------- dispute evidence ---------------------------- */
+
+export async function getDisputeComments(
+  bountyId: string
+): Promise<DisputeComment[]> {
+  const rows = await repo.readDisputeComments(bountyId);
+  return rows.sort((a, b) => a.createdAt - b.createdAt);
+}
+
+/**
+ * Post to a dispute's evidence thread. Only the bounty creator, hunters who
+ * submitted, and moderators may write — and only while the dispute is open,
+ * so the record the arbiter judged on stays frozen afterwards.
+ */
+export async function addDisputeComment(input: {
+  bountyId: string;
+  author: string;
+  body: string;
+  isModerator?: boolean;
+}): Promise<DisputeComment> {
+  const bounty = await getBounty(input.bountyId);
+  if (!bounty) throw new Error("Bounty not found");
+  if (bounty.status !== BountyStatus.Disputed)
+    throw new Error("The evidence thread is only open while disputed");
+
+  const author = input.author.toLowerCase();
+  const isCreator = bounty.creator.toLowerCase() === author;
+  const isSubmitter = (await getSubmissions(input.bountyId)).some(
+    (s) => s.hunter.toLowerCase() === author
+  );
+  if (!isCreator && !isSubmitter && !input.isModerator)
+    throw new Error("Only the creator, submitters and moderators can post");
+
+  const body = input.body.trim();
+  if (!body) throw new Error("Write something first");
+  if (body.length > 1000) throw new Error("Keep it under 1000 characters");
+
+  const comment: DisputeComment = {
+    id: `dc-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+    bountyId: input.bountyId,
+    author,
+    body,
+    createdAt: Date.now(),
+  };
+  await repo.addDisputeComment(comment);
+  return comment;
 }
 
 /* --------------------------------- reports -------------------------------- */

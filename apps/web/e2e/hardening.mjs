@@ -10,6 +10,8 @@ const CREATOR_KEY =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 const HUNTER_KEY =
   "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
+const OUTSIDER_KEY =
+  "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a";
 
 const results = [];
 function check(name, ok, extra = "") {
@@ -154,6 +156,101 @@ r = await fetch(`${BASE}/api/bounties/${bounty.id}/report`, {
   body: JSON.stringify({ reason: "Other", details: "x" }),
 });
 check("report without session rejected (401)", r.status === 401);
+
+/* ---------------- dispute evidence thread (checks 11-16) ---------------- */
+// Reach a real Disputed state: short-deadline bounty, submit, wait it out,
+// dispute — then exercise the thread's auth and freeze rules.
+const outsider = await signIn(OUTSIDER_KEY);
+
+r = await fetch(`${BASE}/api/bounties`, {
+  method: "POST",
+  headers: { ...json, cookie: creator.cookie },
+  body: JSON.stringify({
+    title: "Dispute thread test bounty",
+    description: "expires almost immediately",
+    category: "Development",
+    rewardEth: "0.1",
+    deadline: Math.floor(Date.now() / 1000) + 3,
+  }),
+});
+const disputable = await r.json();
+await fetch(`${BASE}/api/bounties/${disputable.id}/submissions`, {
+  method: "POST",
+  headers: { ...json, cookie: hunter.cookie },
+  body: JSON.stringify({ summary: "delivered", links: "" }),
+});
+await new Promise((res) => setTimeout(res, 4000)); // let the deadline pass
+r = await fetch(`${BASE}/api/bounties/${disputable.id}/actions`, {
+  method: "POST",
+  headers: { ...json, cookie: hunter.cookie },
+  body: JSON.stringify({ action: "dispute" }),
+});
+check("hunter opens dispute after deadline", r.status === 200);
+
+// 11. comment without session -> 401
+r = await fetch(`${BASE}/api/bounties/${disputable.id}/dispute-comments`, {
+  method: "POST",
+  headers: json,
+  body: JSON.stringify({ body: "anon evidence" }),
+});
+check("dispute comment without session rejected (401)", r.status === 401);
+
+// 12. comment from an uninvolved wallet -> rejected
+r = await fetch(`${BASE}/api/bounties/${disputable.id}/dispute-comments`, {
+  method: "POST",
+  headers: { ...json, cookie: outsider.cookie },
+  body: JSON.stringify({ body: "drive-by comment" }),
+});
+check("uninvolved wallet cannot post evidence", r.status === 400);
+
+// 13. hunter posts -> 201, author = session identity
+r = await fetch(`${BASE}/api/bounties/${disputable.id}/dispute-comments`, {
+  method: "POST",
+  headers: { ...json, cookie: hunter.cookie },
+  body: JSON.stringify({ body: "Here is my proof of delivery." }),
+});
+const comment = await r.json();
+check(
+  "hunter posts evidence (author from session)",
+  r.status === 201 && comment.author === hunter.acct.address.toLowerCase()
+);
+
+// 14. thread is publicly readable
+r = await fetch(`${BASE}/api/bounties/${disputable.id}/dispute-comments`);
+const thread = await r.json();
+check(
+  "evidence thread publicly readable",
+  r.status === 200 && thread.some((c) => c.id === comment.id)
+);
+
+// 15. arbiter refunds -> disputeOutcome recorded, thread frozen
+r = await fetch(`${BASE}/api/bounties/${disputable.id}/actions`, {
+  method: "POST",
+  headers: { ...json, cookie: creator.cookie }, // creator is the admin here
+  body: JSON.stringify({ action: "resolve" }),
+});
+const resolved = await r.json();
+check(
+  "arbiter refund records disputeOutcome=creator",
+  r.status === 200 && resolved.disputeOutcome === "creator"
+);
+r = await fetch(`${BASE}/api/bounties/${disputable.id}/dispute-comments`, {
+  method: "POST",
+  headers: { ...json, cookie: hunter.cookie },
+  body: JSON.stringify({ body: "too late" }),
+});
+check("thread frozen after resolution", r.status === 400);
+
+// 16. notifications: address validated, derives from public state
+r = await fetch(`${BASE}/api/notifications?address=nonsense`);
+const badAddr = r.status;
+r = await fetch(
+  `${BASE}/api/notifications?address=${hunter.acct.address}`
+);
+check(
+  "notifications endpoint validates address and returns a list",
+  badAddr === 400 && r.status === 200 && Array.isArray(await r.json())
+);
 
 const failed = results.filter((x) => !x.ok).length;
 console.log(failed === 0 ? "\nALL PASS" : `\n${failed} FAILED`);

@@ -2,6 +2,7 @@ import { jsonRepo } from "./repo-json";
 import { dbRepo } from "./repo-db";
 import type {
   Bounty,
+  DisputeComment,
   ModerationEntry,
   Profile,
   Report,
@@ -31,6 +32,8 @@ export interface StoreRepo {
   deleteModeration(bountyId: string): Promise<void>;
   readProfiles(): Promise<Profile[]>;
   upsertProfile(p: Profile): Promise<void>;
+  readDisputeComments(bountyId: string): Promise<DisputeComment[]>;
+  addDisputeComment(c: DisputeComment): Promise<void>;
 }
 
 export const usingDatabase = !!process.env.DATABASE_URL;

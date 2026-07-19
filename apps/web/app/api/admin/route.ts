@@ -4,6 +4,7 @@ import { getSessionAddress } from "@/lib/auth";
 import { BountyStatus } from "@/lib/contract";
 import {
   getBounties,
+  getDisputeComments,
   getModeration,
   getReports,
   getSubmissions,
@@ -42,6 +43,7 @@ export async function GET() {
     disputed.map(async (bounty) => ({
       bounty,
       submissions: await getSubmissions(bounty.id),
+      comments: await getDisputeComments(bounty.id),
     }))
   );
 

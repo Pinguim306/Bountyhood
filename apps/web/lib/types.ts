@@ -21,6 +21,19 @@ export interface Bounty extends BountyMetadata {
   txHash?: string; // creation (escrow) transaction
   payoutTxHash?: string; // approve/resolve transaction that paid the winner
   disputedBy?: string; // hunter who opened the dispute, while Disputed
+  disputeOutcome?: "hunter" | "creator"; // how the arbiter settled a dispute
+}
+
+/**
+ * Evidence-thread message on a disputed bounty (Phase 5.5). Only the creator,
+ * submitters and moderators can post, and only while the dispute is open.
+ */
+export interface DisputeComment {
+  id: string;
+  bountyId: string;
+  author: string; // wallet address, lowercase
+  body: string;
+  createdAt: number; // unix ms
 }
 
 /** A hunter's submission = off-chain proof anchored on-chain by hash. */

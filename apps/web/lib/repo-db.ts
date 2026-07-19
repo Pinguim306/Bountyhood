@@ -2,6 +2,7 @@ import { getPrisma } from "./db";
 import type { StoreRepo } from "./repo";
 import type {
   Bounty,
+  DisputeComment,
   ModerationEntry,
   Profile,
   Report,
@@ -37,6 +38,8 @@ function toBounty(row: DbBounty): Bounty {
     txHash: row.txHash ?? undefined,
     payoutTxHash: row.payoutTxHash ?? undefined,
     disputedBy: row.disputedBy ?? undefined,
+    disputeOutcome:
+      (row.disputeOutcome as Bounty["disputeOutcome"]) ?? undefined,
   };
 }
 
@@ -57,6 +60,7 @@ function fromBounty(b: Bounty) {
     txHash: b.txHash ?? null,
     payoutTxHash: b.payoutTxHash ?? null,
     disputedBy: b.disputedBy ?? null,
+    disputeOutcome: b.disputeOutcome ?? null,
   };
 }
 
@@ -150,6 +154,24 @@ export const dbRepo: StoreRepo = {
     const rows = await getPrisma().profile.findMany();
     return rows.map(toProfile);
   },
+  async readDisputeComments(bountyId: string) {
+    const rows = await getPrisma().disputeComment.findMany({
+      where: { bountyId },
+    });
+    return rows.map((c) => ({
+      id: c.id,
+      bountyId: c.bountyId,
+      author: c.author,
+      body: c.body,
+      createdAt: Number(c.createdAt),
+    })) as DisputeComment[];
+  },
+  async addDisputeComment(c: DisputeComment) {
+    await getPrisma().disputeComment.create({
+      data: { ...c, createdAt: BigInt(c.createdAt) },
+    });
+  },
+
   async upsertProfile(p: Profile) {
     const data = {
       address: p.address,

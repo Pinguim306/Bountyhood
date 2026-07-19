@@ -135,6 +135,28 @@ export default function DocsPage() {
           The arbiter cannot send funds anywhere else — the contract simply has
           no function for it.
         </p>
+        <ul>
+          <li>
+            <strong className="text-zinc-200">Evidence thread.</strong> While a
+            dispute is open, the bounty page carries a public thread where the
+            creator, the submitting hunters and moderators present their case —
+            links, timelines, what was delivered. It freezes the moment the
+            arbiter rules, so the record the ruling was based on stays intact.
+          </li>
+          <li>
+            <strong className="text-zinc-200">Resolution target.</strong> The
+            arbiter aims to rule within{" "}
+            <strong className="text-zinc-200">72 hours</strong> of a dispute
+            opening. Escrowed funds stay locked in the contract the whole time —
+            waiting never puts the money at risk.
+          </li>
+          <li>
+            <strong className="text-zinc-200">Losing has a cost.</strong> When
+            the arbiter rules for the hunter, the bounty&apos;s creator gets a
+            permanent &quot;disputes lost&quot; mark on their public profile —
+            withholding payment for delivered work follows you (see §8).
+          </li>
+        </ul>
       </Section>
 
       <Section title="6 · Fees">
@@ -219,6 +241,18 @@ export default function DocsPage() {
             activity feed
           </Link>{" "}
           shows everything happening in real time.
+        </p>
+        <p>
+          It cuts both ways: creators who lose a dispute — an arbiter ruling
+          that they withheld payment for delivered work — carry a visible
+          &quot;disputes lost&quot; warning on their profile. Check it before
+          hunting a bounty from an unfamiliar creator.
+        </p>
+        <p>
+          When you&apos;re connected, the bell in the header keeps you on top of
+          the moments that matter: a bounty you submitted to entering its
+          dispute window unpaid, a dispute opening on one of your bounties, a
+          payout landing, or escrow becoming reclaimable.
         </p>
       </Section>
 
