@@ -12,6 +12,19 @@ export const BOUNTY_ESCROW_ADDRESS = (process.env
 
 export const isContractConfigured = BOUNTY_ESCROW_ADDRESS.length === 42;
 
+/**
+ * Official Bountyhood token address, set via NEXT_PUBLIC_OFFICIAL_TOKEN_ADDRESS.
+ * Empty until configured — the site simply omits the "Official token" line
+ * everywhere until a value is set (then it appears automatically).
+ */
+export const OFFICIAL_TOKEN_ADDRESS = (
+  process.env.NEXT_PUBLIC_OFFICIAL_TOKEN_ADDRESS ?? ""
+).trim();
+
+export const hasOfficialToken = /^0x[a-fA-F0-9]{40}$/.test(
+  OFFICIAL_TOKEN_ADDRESS
+);
+
 /** On-chain status enum, mirrored from BountyEscrow.sol. */
 export enum BountyStatus {
   Open = 0,
