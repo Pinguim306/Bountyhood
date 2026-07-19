@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/Header";
-import { OFFICIAL_TOKEN_ADDRESS } from "@/lib/contract";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -25,7 +24,7 @@ export default function RootLayout({
         <Providers>
           <Header />
           <main>{children}</main>
-          <footer className="mx-auto max-w-6xl space-y-2 px-4 py-12 text-sm text-zinc-600">
+          <footer className="mx-auto max-w-6xl px-4 py-12 text-sm text-zinc-600">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <span>Bountyhood · built on Robinhood Chain · rewards settle in ETH</span>
               <span className="flex items-center gap-4">
@@ -40,12 +39,6 @@ export default function RootLayout({
                 <Link href="/terms" className="transition hover:text-zinc-400">
                   Terms &amp; content policy
                 </Link>
-              </span>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="text-zinc-500">Official token:</span>
-              <span className="break-all font-mono text-zinc-400">
-                {OFFICIAL_TOKEN_ADDRESS}
               </span>
             </div>
           </footer>
