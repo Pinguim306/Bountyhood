@@ -8,11 +8,21 @@ import { isAdminAddress } from "@/lib/admin";
 import { formatReward, timeAgo } from "@/lib/format";
 import { useAuth } from "@/lib/useAuth";
 import { useBountyActions } from "@/lib/useBountyActions";
-import type { Bounty, ModerationEntry, Report, Submission } from "@/lib/types";
+import type {
+  Bounty,
+  DisputeComment,
+  ModerationEntry,
+  Report,
+  Submission,
+} from "@/lib/types";
 
 interface AdminData {
   reports: (Report & { bountyTitle: string; bountyHidden: boolean })[];
-  disputes: { bounty: Bounty; submissions: Submission[] }[];
+  disputes: {
+    bounty: Bounty;
+    submissions: Submission[];
+    comments: DisputeComment[];
+  }[];
   hidden: (ModerationEntry & { bountyTitle: string })[];
 }
 
@@ -119,7 +129,7 @@ export default function AdminPage() {
           <Empty text="No open disputes." />
         ) : (
           <div className="space-y-4">
-            {data.disputes.map(({ bounty, submissions }) => (
+            {data.disputes.map(({ bounty, submissions, comments }) => (
               <div
                 key={bounty.id}
                 className="rounded-2xl border border-amber-400/30 bg-amber-400/[0.04] p-5"
@@ -164,6 +174,35 @@ export default function AdminPage() {
                     </li>
                   ))}
                 </ul>
+                {comments.length > 0 && (
+                  <div className="mt-4">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                      Evidence thread ({comments.length})
+                    </div>
+                    <ul className="mt-2 space-y-2">
+                      {comments.map((c) => (
+                        <li
+                          key={c.id}
+                          className="rounded-xl border border-ink-800 bg-ink-950/60 p-3"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <AddressLink
+                              address={c.author}
+                              iconSize={16}
+                              className="text-xs"
+                            />
+                            <span className="shrink-0 text-[11px] text-zinc-600">
+                              {timeAgo(c.createdAt)}
+                            </span>
+                          </div>
+                          <p className="mt-1.5 whitespace-pre-wrap text-xs text-zinc-300">
+                            {c.body}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <button
                   disabled={!!busy}
                   onClick={() =>

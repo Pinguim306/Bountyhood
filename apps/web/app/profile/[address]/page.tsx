@@ -77,6 +77,15 @@ export default async function ProfilePage({
           <div className="mt-1 truncate font-mono text-xs text-zinc-600">
             {address}
           </div>
+          {stats.disputesLost > 0 && (
+            <span
+              title="Disputes where the arbiter ruled the hunter had delivered and this creator withheld payment"
+              className="mt-2 inline-block rounded-full border border-red-500/40 bg-red-500/10 px-2.5 py-0.5 text-xs font-semibold text-red-300"
+            >
+              ⚠ {stats.disputesLost} dispute
+              {stats.disputesLost === 1 ? "" : "s"} lost as creator
+            </span>
+          )}
           {profile?.bio && (
             <p className="mt-2 max-w-xl text-sm text-zinc-400">{profile.bio}</p>
           )}

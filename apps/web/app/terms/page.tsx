@@ -86,6 +86,14 @@ export default function TermsPage() {
             hunter or refunds the creator. The arbiter&apos;s decision is
             enforced on-chain and is final.
           </p>
+          <p>
+            While a dispute is open, both parties may post to the public
+            evidence thread on the bounty page; the thread freezes at
+            resolution. The arbiter targets a ruling within 72 hours of a
+            dispute opening, though this is a service goal, not a contractual
+            deadline. A ruling in the hunter&apos;s favour is recorded on the
+            creator&apos;s public profile as a lost dispute.
+          </p>
         </Section>
 
         <Section title="6. Fees">

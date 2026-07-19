@@ -27,6 +27,11 @@ export interface ProfileStats {
   wins: number;
   /** Total reward earned as a hunter, gross of platform fee (wei). */
   earned: string;
+  /**
+   * Bounties this address created where an arbiter ruled FOR the hunter —
+   * i.e. payment was withheld without cause. Public bad-faith signal.
+   */
+  disputesLost: number;
 }
 
 export function profileStats(
@@ -57,6 +62,7 @@ export function profileStats(
     submissions: mySubs.length,
     wins: won.length,
     earned: sumWei(won.map((b) => b.rewardWei)).toString(),
+    disputesLost: created.filter((b) => b.disputeOutcome === "hunter").length,
   };
 }
 

@@ -10,6 +10,7 @@ import { shortAddress } from "@/lib/format";
 import { useBountyActions } from "@/lib/useBountyActions";
 import type { Bounty, Submission } from "@/lib/types";
 import { AddressLink } from "./AddressLink";
+import { DisputeThread } from "./DisputeThread";
 
 export function BountyWorkspace({ bounty }: { bounty: Bounty }) {
   const router = useRouter();
@@ -96,9 +97,20 @@ export function BountyWorkspace({ bounty }: { bounty: Bounty }) {
               ? `${shortAddress(bounty.disputedBy)} contested this bounty after the deadline. `
               : "A hunter contested this bounty after the deadline. "}
             The escrow is frozen until the platform arbiter pays a hunter or
-            refunds the creator.
+            refunds the creator — the target is a ruling within 72 hours. Both
+            sides should present their case in the evidence thread below.
           </p>
         </div>
+      )}
+
+      {/* Evidence thread: writable while disputed, frozen record afterwards */}
+      {(isDisputed || bounty.disputeOutcome) && (
+        <DisputeThread
+          bountyId={bounty.id}
+          isCreatorHere={!!isCreator}
+          iSubmittedHere={alreadySubmitted}
+          frozen={!isDisputed}
+        />
       )}
 
       {/* Hunter dispute action */}

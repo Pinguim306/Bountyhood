@@ -28,6 +28,7 @@ model Bounty {
   txHash          String?
   payoutTxHash    String?
   disputedBy      String?
+  disputeOutcome  String? // "hunter" | "creator" — how an arbiter settled it
 
   @@index([creator])
   @@index([status])
@@ -64,6 +65,16 @@ model Moderation {
   reason    String
   moderator String
   hiddenAt  BigInt // unix ms
+}
+
+model DisputeComment {
+  id        String @id
+  bountyId  String
+  author    String // wallet address, lowercase
+  body      String
+  createdAt BigInt // unix ms
+
+  @@index([bountyId])
 }
 
 model Profile {

@@ -3,6 +3,7 @@ import path from "path";
 import type { StoreRepo } from "./repo";
 import type {
   Bounty,
+  DisputeComment,
   ModerationEntry,
   Profile,
   Report,
@@ -20,6 +21,7 @@ const FILES = {
   reports: path.join(DATA_DIR, "reports.json"),
   moderation: path.join(DATA_DIR, "moderation.json"),
   profiles: path.join(DATA_DIR, "profiles.json"),
+  disputeComments: path.join(DATA_DIR, "dispute-comments.json"),
 };
 
 async function readJson<T>(file: string): Promise<T[]> {
@@ -72,4 +74,14 @@ export const jsonRepo: StoreRepo = {
   readProfiles: () => readJson<Profile>(FILES.profiles),
   upsertProfile: (p) =>
     upsertBy(FILES.profiles, p, (x) => x.address === p.address),
+
+  readDisputeComments: async (bountyId) =>
+    (await readJson<DisputeComment>(FILES.disputeComments)).filter(
+      (c) => c.bountyId === bountyId
+    ),
+  addDisputeComment: async (c) => {
+    const rows = await readJson<DisputeComment>(FILES.disputeComments);
+    rows.push(c);
+    await writeJson(FILES.disputeComments, rows);
+  },
 };

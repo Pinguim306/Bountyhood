@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ConnectButton } from "./ConnectButton";
 import { LogoMark } from "./Logo";
+import { NotificationsBell } from "./NotificationsBell";
 
 export function Header() {
   return (
@@ -38,6 +39,7 @@ export function Header() {
           >
             + New bounty
           </Link>
+          <NotificationsBell />
           <ConnectButton />
         </div>
       </div>
